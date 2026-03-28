@@ -207,3 +207,4 @@ API_PORT=3002
 # I actualitzar el frontend
 NEXT_PUBLIC_API_URL="http://localhost:3002"
 ```
+ 
