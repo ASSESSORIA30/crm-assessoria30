@@ -1,0 +1,268 @@
+// apps/api/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ─────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  direction
+  collaborator
+  commercial
+}
+
+enum ClientType {
+  individual
+  company
+}
+
+enum ClientStatus {
+  active
+  potential
+  inactive
+}
+
+enum SupplyType {
+  electric
+  gas
+}
+
+enum SupplyStatus {
+  active
+  in_renewal
+  cancelled
+  pending
+}
+
+enum OpportunityStage {
+  new_lead
+  contacted
+  comparison
+  presented
+  negotiation
+  won
+  lost
+}
+
+enum ContactStatus {
+  not_contacted
+  contacted
+  in_conversation
+  closed_won
+  closed_lost
+}
+
+enum ServiceType {
+  electric
+  gas
+  fiber
+  mobile
+  insurance
+  alarm
+}
+
+enum ActivityType {
+  call
+  whatsapp
+  email
+  note
+  system
+}
+
+// ─── USERS ─────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(commercial)
+  isActive     Boolean  @default(true) @map("is_active")
+  phone        String?
+  avatarUrl    String?  @map("avatar_url")
+
+  // Jerarquía multinivel
+  parentUserId String?  @map("parent_user_id")
+  treePath     String   @default("") @map("tree_path")
+  treeLevel    Int      @default(0) @map("tree_level")
+
+  // Comisiones
+  commissionPct Float? @map("commission_pct") @default(25)
+  monthlyTarget Int?   @map("monthly_target")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent   User?   @relation("Hierarchy", fields: [parentUserId], references: [id])
+  children User[]  @relation("Hierarchy")
+
+  assignedClients      Client[]      @relation("AgentClients")
+  assignedSupplies     Supply[]      @relation("AgentSupplies")
+  assignedOpportunities Opportunity[] @relation("AgentOpportunities")
+  activities           Activity[]
+  refreshTokens        RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ─── CLIENTS ───────────────────────────────────────────────────────
+
+model Client {
+  id          String       @id @default(uuid())
+  type        ClientType   @default(individual)
+  name        String
+  taxId       String?      @unique @map("tax_id")
+  email       String?
+  phone       String?
+  status      ClientStatus @default(potential)
+  assignedTo  String?      @map("assigned_to")
+  notes       String?
+  source      String?
+
+  addressStreet   String? @map("address_street")
+  addressCity     String? @map("address_city")
+  addressProvince String? @map("address_province")
+  addressZip      String? @map("address_zip")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+
+  agent         User?         @relation("AgentClients", fields: [assignedTo], references: [id])
+  supplies      Supply[]
+  opportunities Opportunity[]
+  activities    Activity[]
+
+  @@map("clients")
+}
+
+// ─── SUPPLIES ──────────────────────────────────────────────────────
+
+model Supply {
+  id              String       @id @default(uuid())
+  clientId        String       @map("client_id")
+  cups            String       @unique
+  type            SupplyType
+  status          SupplyStatus @default(active)
+  assignedTo      String?      @map("assigned_to")
+
+  currentSupplier String? @map("current_supplier")
+  tariff          String?
+  distributor     String?
+
+  powerP1 Float? @map("power_p1")
+  powerP2 Float? @map("power_p2")
+  powerP3 Float? @map("power_p3")
+
+  annualConsumption Float? @map("annual_consumption")
+
+  addressStreet   String? @map("address_street")
+  addressCity     String? @map("address_city")
+  addressProvince String? @map("address_province")
+  addressZip      String? @map("address_zip")
+
+  contractStartDate DateTime? @map("contract_start_date") @db.Date
+  contractEndDate   DateTime? @map("contract_end_date") @db.Date
+  permanenceEndDate DateTime? @map("permanence_end_date") @db.Date
+
+  // Scoring automático
+  opportunityScore    Int?    @default(0) @map("opportunity_score")
+  opportunityCategory String? @default("inactive") @map("opportunity_category")
+
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+
+  client        Client        @relation(fields: [clientId], references: [id])
+  agent         User?         @relation("AgentSupplies", fields: [assignedTo], references: [id])
+  opportunities Opportunity[]
+
+  @@map("supplies")
+}
+
+// ─── OPPORTUNITIES ─────────────────────────────────────────────────
+
+model Opportunity {
+  id              String           @id @default(uuid())
+  title           String
+  clientId        String           @map("client_id")
+  supplyId        String?          @map("supply_id")
+  assignedAgentId String?          @map("assigned_agent_id")
+
+  serviceType   ServiceType      @map("service_type")
+  stage         OpportunityStage @default(new_lead)
+  contactStatus ContactStatus    @default(not_contacted) @map("contact_status")
+  leadSource    String?          @map("lead_source")
+
+  estimatedValue Float?   @map("estimated_value")
+  probability    Int?     @default(20)
+  expectedClose  DateTime? @map("expected_close") @db.Date
+
+  lastContactAt   DateTime? @map("last_contact_at")
+  lastContactType String?   @map("last_contact_type")
+  nextActionAt    DateTime? @map("next_action_at")
+  contactAttempts Int       @default(0) @map("contact_attempts")
+
+  wonAt          DateTime? @map("won_at")
+  lostAt         DateTime? @map("lost_at")
+  lostReason     String?   @map("lost_reason")
+  lostReasonCode String?   @map("lost_reason_code")
+
+  isAutoGenerated Boolean @default(false) @map("is_auto_generated")
+  notes           String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String?  @map("created_by")
+
+  client     Client     @relation(fields: [clientId], references: [id])
+  supply     Supply?    @relation(fields: [supplyId], references: [id])
+  agent      User?      @relation("AgentOpportunities", fields: [assignedAgentId], references: [id])
+  activities Activity[]
+
+  @@map("opportunities")
+}
+
+// ─── ACTIVITIES ────────────────────────────────────────────────────
+
+model Activity {
+  id            String        @id @default(uuid())
+  type          ActivityType
+  note          String?
+  outcome       String?
+  durationMins  Int?          @map("duration_mins")
+  nextActionAt  DateTime?     @map("next_action_at")
+  isAutomatic   Boolean       @default(false) @map("is_automatic")
+  messageText   String?       @map("message_text")
+
+  clientId      String?  @map("client_id")
+  opportunityId String?  @map("opportunity_id")
+  createdBy     String?  @map("created_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client      Client?      @relation(fields: [clientId], references: [id])
+  opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
+  creator     User?        @relation(fields: [createdBy], references: [id])
+
+  @@map("activities")
+}
