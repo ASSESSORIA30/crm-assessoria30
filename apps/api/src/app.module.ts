@@ -12,6 +12,7 @@ import { ProductsModule } from './modules/products/products.module'
 import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
 import { RenewalsModule } from './modules/renewals/renewals.module'
 import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
+import { LiquidationsModule } from './modules/liquidations/liquidations.module'
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
     OportunitatsModule,
     RenewalsModule,
     TariffSyncModule,
+    LiquidationsModule,
   ],
 })
 export class AppModule {}
