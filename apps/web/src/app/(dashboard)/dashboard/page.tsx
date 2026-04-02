@@ -165,7 +165,7 @@ function StatsPanel() {
                     <Cell key={i} fill={d.fill} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Tooltip formatter={(v: any) => [`${v}`, 'Contractes']} />
                 <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -181,7 +181,7 @@ function StatsPanel() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis type="number" tick={{ fontSize: 10 }} stroke="#94a3b8" />
                 <YAxis type="category" dataKey="company" tick={{ fontSize: 10 }} stroke="#94a3b8" width={90} />
-                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Tooltip formatter={(v: any) => [`${v}`, 'Contractes']} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {companyData.map((_: any, i: number) => (
                     <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -201,7 +201,7 @@ function StatsPanel() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="agent" tick={{ fontSize: 9, angle: -30, textAnchor: 'end' }} stroke="#94a3b8" height={50} />
                 <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" />
-                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Tooltip formatter={(v: any) => [`${v}`, 'Contractes']} />
                 <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
