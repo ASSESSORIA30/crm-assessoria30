@@ -198,7 +198,7 @@ export default function MarketPage() {
                   <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" domain={['auto', 'auto']} />
                   <Tooltip
                     contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13 }}
-                    formatter={(value: number) => [`${value.toFixed(2)} \u20ac/MWh`, 'Preu']}
+                    formatter={(value: any) => [`${Number(value).toFixed(2)} \u20ac/MWh`, 'Preu']}
                   />
                   <Line
                     type="monotone"
