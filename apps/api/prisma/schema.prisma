@@ -87,12 +87,10 @@ model User {
   phone        String?
   avatarUrl    String?  @map("avatar_url")
 
-  // Jerarquía multinivel
   parentUserId String?  @map("parent_user_id")
   treePath     String   @default("") @map("tree_path")
   treeLevel    Int      @default(0) @map("tree_level")
 
-  // Comisiones
   commissionPct Float? @map("commission_pct") @default(25)
   monthlyTarget Int?   @map("monthly_target")
 
@@ -136,6 +134,7 @@ model Client {
   assignedTo  String?      @map("assigned_to")
   notes       String?
   source      String?
+  dataRenovacio DateTime? @map("data_renovacio") @db.Date
 
   addressStreet   String? @map("address_street")
   addressCity     String? @map("address_city")
@@ -184,7 +183,6 @@ model Supply {
   contractEndDate   DateTime? @map("contract_end_date") @db.Date
   permanenceEndDate DateTime? @map("permanence_end_date") @db.Date
 
-  // Scoring automático
   opportunityScore    Int?    @default(0) @map("opportunity_score")
   opportunityCategory String? @default("inactive") @map("opportunity_category")
 
@@ -316,7 +314,7 @@ model Protocol {
   @@map("protocols")
 }
 
-// ─── COMPANIES & TARIFES (Products module) ────────────────────────────
+// ─── COMPANIES & TARIFES ─────────────────────────────────────────────
 
 model Company {
   id        String   @id @default(uuid())
@@ -347,7 +345,7 @@ model Tarifa {
   @@map("tarifes")
 }
 
-// ─── OPORTUNITATS (Opportunity detector) ──────────────────────────────
+// ─── OPORTUNITATS ─────────────────────────────────────────────────────
 
 model Oportunitat {
   id           String   @id @default(uuid())
