@@ -15,6 +15,7 @@ import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
 import { LiquidationsModule } from './modules/liquidations/liquidations.module'
 import { FacturasModule } from './modules/facturas/facturas.module'
 import { MarketModule } from './modules/market/market.module'
+import { DashboardModule } from './modules/dashboard/dashboard.module'
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MarketModule } from './modules/market/market.module'
     LiquidationsModule,
     FacturasModule,
     MarketModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

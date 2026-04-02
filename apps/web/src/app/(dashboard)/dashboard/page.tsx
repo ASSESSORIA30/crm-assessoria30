@@ -3,7 +3,7 @@
 import { useState }    from 'react'
 import { useQuery }    from '@tanstack/react-query'
 import Link            from 'next/link'
-import { oppApi }      from '@/lib/api'
+import { oppApi, api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth.store'
 import { ActionModal } from '@/components/dashboard/action-modal'
 import {
@@ -15,6 +15,10 @@ import {
   cn, fmt, expiryLabel, expiryClass,
   SERVICE_ICON, CONTACT_LABEL, STAGE_LABEL,
 } from '@/lib/utils'
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+} from 'recharts'
 
 type ModalState = { oppId: string; type: 'call' | 'whatsapp' | 'email' } | null
 
@@ -100,11 +104,111 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Estad\u00edstiques */}
+      <StatsPanel />
+
       {/* Modal */}
       {modal && modalOpp && (
         <ActionModal opp={modalOpp} type={modal.type} onClose={() => setModal(null)} />
       )}
     </div>
+  )
+}
+
+// ─── Stats Panel ──────────────────────────────────────────────────────────────────────────
+const SERVICE_COLORS: Record<string, string> = {
+  electric: '#f59e0b', gas: '#3b82f6', fiber: '#8b5cf6',
+  mobile: '#10b981', insurance: '#ef4444', alarm: '#6366f1',
+}
+const SERVICE_LABELS: Record<string, string> = {
+  electric: 'Llum', gas: 'Gas', fiber: 'Fibra',
+  mobile: 'M\u00f2bil', insurance: 'Asseguran\u00e7a', alarm: 'Alarma',
+}
+const PIE_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#6366f1', '#ec4899', '#14b8a6', '#f97316', '#64748b']
+
+function StatsPanel() {
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => api.get('/dashboard/stats').then(r => r.data),
+    refetchInterval: 120_000,
+  })
+
+  if (!stats) return null
+
+  const serviceData = (stats.byServiceType ?? []).map((d: any) => ({
+    name: SERVICE_LABELS[d.type] ?? d.type,
+    value: d.count,
+    fill: SERVICE_COLORS[d.type] ?? '#94a3b8',
+  }))
+
+  const companyData = (stats.byCompany ?? []).slice(0, 8)
+  const agentData = (stats.byAgent ?? []).slice(0, 10)
+
+  const hasData = serviceData.length > 0 || companyData.length > 0 || agentData.length > 0
+  if (!hasData) return null
+
+  return (
+    <section>
+      <SectionLabel>
+        Estad\u00edstiques
+        <span className="text-gray-400 font-normal ml-1.5">\u2014 contractes actius</span>
+      </SectionLabel>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Per tarifa */}
+        {serviceData.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Per tarifa</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={serviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
+                  {serviceData.map((d: any, i: number) => (
+                    <Cell key={i} fill={d.fill} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Per companyia */}
+        {companyData.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Per companyia</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={companyData} layout="vertical" margin={{ left: 0, right: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis type="number" tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                <YAxis type="category" dataKey="company" tick={{ fontSize: 10 }} stroke="#94a3b8" width={90} />
+                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {companyData.map((_: any, i: number) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Per agent */}
+        {agentData.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Per agent</p>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={agentData} margin={{ bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="agent" tick={{ fontSize: 9, angle: -30, textAnchor: 'end' }} stroke="#94a3b8" height={50} />
+                <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8" />
+                <Tooltip formatter={(v: number) => [v, 'Contractes']} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
