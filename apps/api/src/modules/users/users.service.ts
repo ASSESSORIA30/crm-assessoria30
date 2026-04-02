@@ -15,7 +15,7 @@ export class UsersService {
       where,
       select: {
         id: true, name: true, email: true, role: true,
-        treeLevel: true, phone: true, zone: true,
+        treeLevel: true, phone: true,
         commissionPct: true, monthlyTarget: true,
       },
       orderBy: [{ treeLevel: 'asc' }, { name: 'asc' }],
@@ -64,7 +64,7 @@ export class UsersService {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 // apps/api/src/modules/users/users.controller.ts
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'

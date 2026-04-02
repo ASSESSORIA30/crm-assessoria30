@@ -45,7 +45,7 @@ api.interceptors.response.use(
   },
 )
 
-// ── Typed helpers ──────────────────────────────────────────────
+// ── Typed helpers ────────────────────────────────────────────────────────
 export const authApi = {
   login:   (email: string, password: string) => api.post('/auth/login', { email, password }).then(r => r.data),
   refresh: (rt: string)                       => api.post('/auth/refresh', { refreshToken: rt }).then(r => r.data),
@@ -67,6 +67,32 @@ export const suppliesApi = {
   create:  (d: any)    => api.post('/supplies',     d).then(r => r.data),
   update:  (id: string, d: any) => api.patch(`/supplies/${id}`, d).then(r => r.data),
   preview: (id: string) => api.get(`/supplies/${id}/comparison-preview`).then(r => r.data),
+}
+
+export const protocolsApi = {
+  list:   ()         => api.get('/protocols').then(r => r.data),
+  upload: (file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post('/protocols/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120_000,
+    }).then(r => r.data)
+  },
+}
+
+export const productsApi = {
+  companies: ()              => api.get('/products/companies').then(r => r.data),
+  list:      (p?: any)       => api.get('/products', { params: p }).then(r => r.data),
+  update:    (id: string, d: any) => api.patch(`/products/${id}`, d).then(r => r.data),
+  upload:    (file: File)    => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post('/products/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120_000,
+    }).then(r => r.data)
+  },
 }
 
 export const oppApi = {

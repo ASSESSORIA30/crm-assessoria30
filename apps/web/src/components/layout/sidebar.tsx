@@ -5,22 +5,24 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Zap, Target, BarChart2,
   FileText, RefreshCw, CheckSquare, Settings, LogOut,
-  Network, DollarSign, ChevronRight,
+  Network, DollarSign, ChevronRight, Package,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { cn, initials } from '@/lib/utils'
 
 const NAV = [
-  { href: '/dashboard',       label: 'Dashboard',        icon: LayoutDashboard, section: 'PRINCIPAL' },
-  { href: '/clients',         label: 'Clients',          icon: Users            },
-  { href: '/supplies',        label: 'Subministraments', icon: Zap              },
-  { href: '/opportunities',   label: 'Oportunitats',     icon: Target           },
-  { href: '/comparisons',     label: 'Comparatives',     icon: BarChart2,       section: 'COMERCIAL' },
-  { href: '/contracts',       label: 'Contractes',       icon: FileText         },
-  { href: '/renewals',        label: 'Renovacions',      icon: RefreshCw        },
-  { href: '/tasks',           label: 'Tasques',          icon: CheckSquare,     section: 'GESTIÓ'    },
-  { href: '/team',            label: 'El meu equip',     icon: Network,         roles: ['admin', 'direction', 'collaborator'] },
-  { href: '/commissions',     label: 'Comissions',       icon: DollarSign       },
+  { href: '/dashboard',        label: 'Dashboard',        icon: LayoutDashboard, section: 'PRINCIPAL' },
+  { href: '/clients',          label: 'Clients',          icon: Users            },
+  { href: '/supplies',         label: 'Subministraments', icon: Zap              },
+  { href: '/opportunities',    label: 'Oportunitats',     icon: Target           },
+  { href: '/products',         label: 'Productes',        icon: Package,         section: 'COMERCIAL' },
+  { href: '/protocols/upload', label: 'Protocols',         icon: FileText         },
+  { href: '/comparisons',      label: 'Comparatives',     icon: BarChart2        },
+  { href: '/contracts',        label: 'Contractes',       icon: FileText         },
+  { href: '/renewals',         label: 'Renovacions',      icon: RefreshCw        },
+  { href: '/tasks',            label: 'Tasques',          icon: CheckSquare,     section: 'GESTIÓ'    },
+  { href: '/team',             label: 'El meu equip',     icon: Network,         roles: ['admin', 'direction', 'collaborator'] },
+  { href: '/commissions',      label: 'Comissions',       icon: DollarSign       },
 ]
 
 export function Sidebar() {
