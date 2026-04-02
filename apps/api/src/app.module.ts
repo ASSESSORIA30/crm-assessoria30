@@ -13,6 +13,7 @@ import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
 import { RenewalsModule } from './modules/renewals/renewals.module'
 import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
 import { LiquidationsModule } from './modules/liquidations/liquidations.module'
+import { FacturasModule } from './modules/facturas/facturas.module'
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { LiquidationsModule } from './modules/liquidations/liquidations.module'
     RenewalsModule,
     TariffSyncModule,
     LiquidationsModule,
+    FacturasModule,
   ],
 })
 export class AppModule {}
