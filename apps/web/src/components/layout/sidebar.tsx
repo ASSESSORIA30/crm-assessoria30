@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Users, Zap, Target, BarChart2,
+  LayoutDashboard, Users, Zap, Target, BarChart2, TrendingUp,
   FileText, RefreshCw, CheckSquare, Settings, LogOut,
   Network, DollarSign, ChevronRight, Package,
 } from 'lucide-react'
@@ -15,7 +15,8 @@ const NAV = [
   { href: '/clients',          label: 'Clients',          icon: Users            },
   { href: '/supplies',         label: 'Subministraments', icon: Zap              },
   { href: '/opportunities',    label: 'Oportunitats',     icon: Target           },
-  { href: '/products',         label: 'Productes',        icon: Package,         section: 'COMERCIAL' },
+  { href: '/market',            label: 'Mercat Diari',     icon: TrendingUp,      section: 'COMERCIAL' },
+  { href: '/products',         label: 'Productes',        icon: Package         },
   { href: '/protocols/upload', label: 'Protocols',         icon: FileText         },
   { href: '/oportunitats',     label: 'Detector',         icon: BarChart2        },
   { href: '/comparisons',      label: 'Comparatives',     icon: BarChart2        },
