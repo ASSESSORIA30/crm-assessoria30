@@ -10,6 +10,8 @@ import { OpportunitiesModule } from './modules/opportunities/opportunities.modul
 import { ProtocolsModule } from './modules/protocols/protocols.module'
 import { ProductsModule } from './modules/products/products.module'
 import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
+import { RenewalsModule } from './modules/renewals/renewals.module'
+import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
     ProtocolsModule,
     ProductsModule,
     OportunitatsModule,
+    RenewalsModule,
+    TariffSyncModule,
   ],
 })
 export class AppModule {}

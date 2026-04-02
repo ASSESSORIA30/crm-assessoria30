@@ -1,0 +1,129 @@
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../prisma/prisma.service'
+import { Resend } from 'resend'
+
+@Injectable()
+export class RenewalsService {
+  private resend: Resend
+
+  constructor(private prisma: PrismaService) {
+    this.resend = new Resend(process.env.RESEND_API_KEY)
+  }
+
+  async getUpcoming(days = 7) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const limit = new Date(today)
+    limit.setDate(limit.getDate() + days)
+
+    return this.prisma.client.findMany({
+      where: {
+        dataRenovacio: { gte: today, lte: limit },
+        status: 'active',
+      },
+      include: {
+        supplies: {
+          where: { status: 'active' },
+          select: { tariff: true, currentSupplier: true, contractEndDate: true, cups: true },
+        },
+      },
+      orderBy: { dataRenovacio: 'asc' },
+    })
+  }
+
+  generateWhatsAppLinks(clients: any[]): any[] {
+    return clients
+      .filter((c) => c.phone)
+      .map((c) => {
+        const supply = c.supplies?.[0]
+        const date = c.dataRenovacio
+          ? new Date(c.dataRenovacio).toLocaleDateString('ca-ES')
+          : 'pr\u00f2ximament'
+        const tariff = supply?.tariff ?? 'la teva tarifa actual'
+        const supplier = supply?.currentSupplier ?? 'el teu prove\u00efdor'
+
+        const text = [
+          `Hola ${c.name}! \ud83d\udc4b`,
+          `Et recordem que la teva tarifa "${tariff}" amb ${supplier} ven\u00e7 el ${date}.`,
+          `Tenim ofertes millors per a tu. Vols que et fem una comparativa gratu\u00efta?`,
+          `Contacta'ns per revisar les teves opcions.`,
+        ].join('\n')
+
+        const phone = c.phone.replace(/\D/g, '')
+        const fullPhone = phone.startsWith('34') ? phone : `34${phone}`
+
+        return {
+          clientId: c.id,
+          name: c.name,
+          phone: c.phone,
+          url: `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`,
+          message: text,
+        }
+      })
+  }
+
+  async sendEmails(clientIds: string[]) {
+    const clients = await this.prisma.client.findMany({
+      where: { id: { in: clientIds }, email: { not: null } },
+      include: {
+        supplies: {
+          where: { status: 'active' },
+          select: { tariff: true, currentSupplier: true, contractEndDate: true },
+        },
+      },
+    })
+
+    const results = await Promise.allSettled(
+      clients.map((c) => {
+        const supply = c.supplies?.[0]
+        const date = c.dataRenovacio
+          ? new Date(c.dataRenovacio).toLocaleDateString('ca-ES')
+          : 'pr\u00f2ximament'
+
+        return this.resend.emails.send({
+          from: process.env.RESEND_FROM ?? 'Assessoria 3.0 <noreply@assessoria30.com>',
+          to: c.email!,
+          subject: `${c.name}, la teva tarifa ven\u00e7 el ${date}`,
+          html: this.buildEmailHtml(c.name, date, supply?.tariff, supply?.currentSupplier),
+        })
+      }),
+    )
+
+    return {
+      sent: results.filter((r) => r.status === 'fulfilled').length,
+      failed: results.filter((r) => r.status === 'rejected').length,
+      total: clients.length,
+    }
+  }
+
+  private buildEmailHtml(name: string, date: string, tariff?: string | null, supplier?: string | null): string {
+    return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
+  <div style="text-align: center; padding: 24px 0; border-bottom: 2px solid #e2e8f0;">
+    <h1 style="font-size: 20px; color: #0f172a; margin: 0;">\u26a1 Assessoria 3.0</h1>
+  </div>
+  <div style="padding: 32px 0;">
+    <p style="font-size: 16px;">Hola <strong>${name}</strong>,</p>
+    <p>Et recordem que la teva tarifa <strong>${tariff ?? 'actual'}</strong> amb <strong>${supplier ?? 'el teu prove\u00efdor'}</strong> ven\u00e7 el <strong>${date}</strong>.</p>
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+      <p style="margin: 0; font-size: 15px;">\ud83c\udfaf <strong>Tenim ofertes exclusives</strong> que et poden estalviar fins a un <strong>30%</strong> en la teva factura.</p>
+    </div>
+    <p>Vols que et fem una comparativa gratu\u00efta i sense comprom\u00eds?</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="mailto:info@assessoria30.com?subject=Renovaci\u00f3 tarifa - ${name}"
+         style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
+        S\u00ed, vull la meva comparativa!
+      </a>
+    </div>
+    <p style="color: #64748b; font-size: 13px;">Si tens qualsevol dubte, no dubtis en contactar-nos.</p>
+  </div>
+  <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center; color: #94a3b8; font-size: 12px;">
+    <p>Assessoria 3.0 \u2014 Estalvia en energia i telecomunicacions</p>
+  </div>
+</body>
+</html>`
+  }
+}
