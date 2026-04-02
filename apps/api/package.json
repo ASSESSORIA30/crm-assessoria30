@@ -20,6 +20,7 @@
     "class-validator": "^0.14.1",
     "googleapis": "^171.4.0",
     "node-forge": "^1.4.0",
+    "node-mailjet": "^6.0.11",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdf-parse": "1.1.0",
@@ -27,7 +28,6 @@
     "prisma": "^5.14.0",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.0",
-    "resend": "^6.10.0",
     "rxjs": "^7.8.0",
     "xlsx": "^0.18.5",
     "xmlbuilder2": "^4.0.3"

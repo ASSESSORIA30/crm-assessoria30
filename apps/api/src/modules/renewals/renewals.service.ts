@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import { Resend } from 'resend'
+import Mailjet from 'node-mailjet'
 
 @Injectable()
 export class RenewalsService {
-  private resend: Resend
+  private mailjet: ReturnType<typeof Mailjet.apiConnect>
 
   constructor(private prisma: PrismaService) {
-    this.resend = new Resend(process.env.RESEND_API_KEY)
+    this.mailjet = Mailjet.apiConnect(
+      process.env.MAILJET_API_KEY ?? '',
+      process.env.MAILJET_SECRET_KEY ?? '',
+    )
   }
 
   async getUpcoming(days = 7) {
@@ -73,6 +76,9 @@ export class RenewalsService {
       },
     })
 
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@assessoria30.com'
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'Assessoria 3.0'
+
     const results = await Promise.allSettled(
       clients.map((c) => {
         const supply = c.supplies?.[0]
@@ -80,11 +86,13 @@ export class RenewalsService {
           ? new Date(c.dataRenovacio).toLocaleDateString('ca-ES')
           : 'pr\u00f2ximament'
 
-        return this.resend.emails.send({
-          from: process.env.RESEND_FROM ?? 'Assessoria 3.0 <noreply@assessoria30.com>',
-          to: c.email!,
-          subject: `${c.name}, la teva tarifa ven\u00e7 el ${date}`,
-          html: this.buildEmailHtml(c.name, date, supply?.tariff, supply?.currentSupplier),
+        return this.mailjet.post('send', { version: 'v3.1' }).request({
+          Messages: [{
+            From: { Email: fromEmail, Name: fromName },
+            To: [{ Email: c.email!, Name: c.name }],
+            Subject: `${c.name}, la teva tarifa ven\u00e7 el ${date}`,
+            HTMLPart: this.buildEmailHtml(c.name, date, supply?.tariff, supply?.currentSupplier),
+          }],
         })
       }),
     )
