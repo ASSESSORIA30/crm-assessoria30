@@ -321,7 +321,8 @@ model Company {
   nombre    String   @unique
   createdAt DateTime @default(now()) @map("created_at")
 
-  tarifes Tarifa[]
+  tarifes          Tarifa[]
+  agentComissions  AgentComission[]
 
   @@map("companies")
 }
@@ -359,4 +360,53 @@ model Oportunitat {
   tarifaNova Tarifa @relation(fields: [tarifaNovaId], references: [id])
 
   @@map("oportunitats")
+}
+
+// ─── AGENTS & LIQUIDATIONS ──────────────────────────────────────────
+
+model Agent {
+  id            String   @id @default(uuid())
+  nombre        String
+  nif           String   @unique
+  email         String?
+  telefon       String?
+  tipus         String   @default("autonom")
+  irpfRetencio  Float    @default(15) @map("irpf_retencio")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  comissions   AgentComission[]
+  liquidations Liquidation[]
+
+  @@map("agents")
+}
+
+model AgentComission {
+  id          String  @id @default(uuid())
+  agentId     String  @map("agent_id")
+  companyId   String  @map("company_id")
+  producte    String?
+  percentatge Float
+  actiu       Boolean @default(true)
+
+  agent   Agent   @relation(fields: [agentId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@map("agent_comissions")
+}
+
+model Liquidation {
+  id            String   @id @default(uuid())
+  agentId       String   @map("agent_id")
+  periodeInicio DateTime @map("periode_inicio") @db.Date
+  periodeFin    DateTime @map("periode_fin") @db.Date
+  totalBrut     Float    @default(0) @map("total_brut")
+  retencioIrpf  Float    @default(0) @map("retencio_irpf")
+  totalNet      Float    @default(0) @map("total_net")
+  estat         String   @default("esborrany")
+  linies        Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  agent Agent @relation(fields: [agentId], references: [id])
+
+  @@map("liquidations")
 }
