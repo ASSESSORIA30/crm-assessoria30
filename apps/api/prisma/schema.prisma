@@ -8,15 +8,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole { admin direction collaborator commercial }
-enum ClientType { individual company }
-enum ClientStatus { active potential inactive }
-enum SupplyType { electric gas }
-enum SupplyStatus { active in_renewal cancelled pending }
-enum OpportunityStage { new_lead contacted comparison presented negotiation won lost }
-enum ContactStatus { not_contacted contacted in_conversation closed_won closed_lost }
-enum ServiceType { electric gas fiber mobile insurance alarm }
-enum ActivityType { call whatsapp email note system }
+enum UserRole {
+  admin
+  direction
+  collaborator
+  commercial
+}
+
+enum ClientType {
+  individual
+  company
+}
+
+enum ClientStatus {
+  active
+  potential
+  inactive
+}
+
+enum SupplyType {
+  electric
+  gas
+}
+
+enum SupplyStatus {
+  active
+  in_renewal
+  cancelled
+  pending
+}
+
+enum OpportunityStage {
+  new_lead
+  contacted
+  comparison
+  presented
+  negotiation
+  won
+  lost
+}
+
+enum ContactStatus {
+  not_contacted
+  contacted
+  in_conversation
+  closed_won
+  closed_lost
+}
+
+enum ServiceType {
+  electric
+  gas
+  fiber
+  mobile
+  insurance
+  alarm
+}
+
+enum ActivityType {
+  call
+  whatsapp
+  email
+  note
+  system
+}
 
 model User {
   id           String   @id @default(uuid())
