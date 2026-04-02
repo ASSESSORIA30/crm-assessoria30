@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { ActionModal } from '@/components/dashboard/action-modal'
 import {
   Target, TrendingUp, CheckCircle, Activity,
-  Phone, MessageCircle, Eye, ChevronRight,
+  Phone, MessageCircle, Mail, Eye, ChevronRight,
   AlertTriangle, Clock,
 } from 'lucide-react'
 import {
@@ -108,7 +108,7 @@ export default function DashboardPage() {
   )
 }
 
-// ─── OppCard ──────────────────────────────────────────────────────────────────
+// ─── OppCard ──────────────────────────────────────────────────────────────────────────────
 function OppCard({ opp, variant, onAction }: {
   opp: any
   variant: 'urgent' | 'follow'
@@ -177,7 +177,7 @@ function OppCard({ opp, variant, onAction }: {
   )
 }
 
-// ─── Small helpers ─────────────────────────────────────────────────────────────
+// ─── Small helpers ─────────────────────────────────────────────────────────────────────────
 function ActionBtn({ icon: Icon, label, onClick, green = false }: { icon: any; label: string; onClick: () => void; green?: boolean }) {
   return (
     <button onClick={onClick} className={cn(

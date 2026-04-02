@@ -8,74 +8,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── ENUMS ─────────────────────────────────────────────────────────
-
-enum UserRole {
-  admin
-  direction
-  collaborator
-  commercial
-}
-
-enum ClientType {
-  individual
-  company
-}
-
-enum ClientStatus {
-  active
-  potential
-  inactive
-}
-
-enum SupplyType {
-  electric
-  gas
-}
-
-enum SupplyStatus {
-  active
-  in_renewal
-  cancelled
-  pending
-}
-
-enum OpportunityStage {
-  new_lead
-  contacted
-  comparison
-  presented
-  negotiation
-  won
-  lost
-}
-
-enum ContactStatus {
-  not_contacted
-  contacted
-  in_conversation
-  closed_won
-  closed_lost
-}
-
-enum ServiceType {
-  electric
-  gas
-  fiber
-  mobile
-  insurance
-  alarm
-}
-
-enum ActivityType {
-  call
-  whatsapp
-  email
-  note
-  system
-}
-
-// ─── USERS ─────────────────────────────────────────────────────────
+enum UserRole { admin direction collaborator commercial }
+enum ClientType { individual company }
+enum ClientStatus { active potential inactive }
+enum SupplyType { electric gas }
+enum SupplyStatus { active in_renewal cancelled pending }
+enum OpportunityStage { new_lead contacted comparison presented negotiation won lost }
+enum ContactStatus { not_contacted contacted in_conversation closed_won closed_lost }
+enum ServiceType { electric gas fiber mobile insurance alarm }
+enum ActivityType { call whatsapp email note system }
 
 model User {
   id           String   @id @default(uuid())
@@ -86,28 +27,20 @@ model User {
   isActive     Boolean  @default(true) @map("is_active")
   phone        String?
   avatarUrl    String?  @map("avatar_url")
-
-  // Jerarquía multinivel
   parentUserId String?  @map("parent_user_id")
   treePath     String   @default("") @map("tree_path")
   treeLevel    Int      @default(0) @map("tree_level")
-
-  // Comisiones
   commissionPct Float? @map("commission_pct") @default(25)
   monthlyTarget Int?   @map("monthly_target")
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
   parent   User?   @relation("Hierarchy", fields: [parentUserId], references: [id])
   children User[]  @relation("Hierarchy")
-
   assignedClients      Client[]      @relation("AgentClients")
   assignedSupplies     Supply[]      @relation("AgentSupplies")
   assignedOpportunities Opportunity[] @relation("AgentOpportunities")
   activities           Activity[]
   refreshTokens        RefreshToken[]
-
   @@map("users")
 }
 
@@ -117,13 +50,9 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@map("refresh_tokens")
 }
-
-// ─── CLIENTS ───────────────────────────────────────────────────────
 
 model Client {
   id          String       @id @default(uuid())
@@ -136,25 +65,22 @@ model Client {
   assignedTo  String?      @map("assigned_to")
   notes       String?
   source      String?
-
+  dataRenovacio DateTime? @map("data_renovacio") @db.Date
   addressStreet   String? @map("address_street")
   addressCity     String? @map("address_city")
   addressProvince String? @map("address_province")
   addressZip      String? @map("address_zip")
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
-
   agent         User?         @relation("AgentClients", fields: [assignedTo], references: [id])
   supplies      Supply[]
   opportunities Opportunity[]
   activities    Activity[]
-
+  oportunitats  Oportunitat[]
+  facturas      Factura[]
   @@map("clients")
 }
-
-// ─── SUPPLIES ──────────────────────────────────────────────────────
 
 model Supply {
   id              String       @id @default(uuid())
@@ -163,43 +89,31 @@ model Supply {
   type            SupplyType
   status          SupplyStatus @default(active)
   assignedTo      String?      @map("assigned_to")
-
   currentSupplier String? @map("current_supplier")
   tariff          String?
   distributor     String?
-
   powerP1 Float? @map("power_p1")
   powerP2 Float? @map("power_p2")
   powerP3 Float? @map("power_p3")
-
   annualConsumption Float? @map("annual_consumption")
-
   addressStreet   String? @map("address_street")
   addressCity     String? @map("address_city")
   addressProvince String? @map("address_province")
   addressZip      String? @map("address_zip")
-
   contractStartDate DateTime? @map("contract_start_date") @db.Date
   contractEndDate   DateTime? @map("contract_end_date") @db.Date
   permanenceEndDate DateTime? @map("permanence_end_date") @db.Date
-
-  // Scoring automático
   opportunityScore    Int?    @default(0) @map("opportunity_score")
   opportunityCategory String? @default("inactive") @map("opportunity_category")
-
   notes     String?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
-
   client        Client        @relation(fields: [clientId], references: [id])
   agent         User?         @relation("AgentSupplies", fields: [assignedTo], references: [id])
   opportunities Opportunity[]
-
   @@map("supplies")
 }
-
-// ─── OPPORTUNITIES ─────────────────────────────────────────────────
 
 model Opportunity {
   id              String           @id @default(uuid())
@@ -207,42 +121,32 @@ model Opportunity {
   clientId        String           @map("client_id")
   supplyId        String?          @map("supply_id")
   assignedAgentId String?          @map("assigned_agent_id")
-
   serviceType   ServiceType      @map("service_type")
   stage         OpportunityStage @default(new_lead)
   contactStatus ContactStatus    @default(not_contacted) @map("contact_status")
   leadSource    String?          @map("lead_source")
-
   estimatedValue Float?   @map("estimated_value")
   probability    Int?     @default(20)
   expectedClose  DateTime? @map("expected_close") @db.Date
-
   lastContactAt   DateTime? @map("last_contact_at")
   lastContactType String?   @map("last_contact_type")
   nextActionAt    DateTime? @map("next_action_at")
   contactAttempts Int       @default(0) @map("contact_attempts")
-
   wonAt          DateTime? @map("won_at")
   lostAt         DateTime? @map("lost_at")
   lostReason     String?   @map("lost_reason")
   lostReasonCode String?   @map("lost_reason_code")
-
   isAutoGenerated Boolean @default(false) @map("is_auto_generated")
   notes           String?
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
-
   client     Client     @relation(fields: [clientId], references: [id])
   supply     Supply?    @relation(fields: [supplyId], references: [id])
   agent      User?      @relation("AgentOpportunities", fields: [assignedAgentId], references: [id])
   activities Activity[]
-
   @@map("opportunities")
 }
-
-// ─── ACTIVITIES ────────────────────────────────────────────────────
 
 model Activity {
   id            String        @id @default(uuid())
@@ -253,16 +157,154 @@ model Activity {
   nextActionAt  DateTime?     @map("next_action_at")
   isAutomatic   Boolean       @default(false) @map("is_automatic")
   messageText   String?       @map("message_text")
-
   clientId      String?  @map("client_id")
   opportunityId String?  @map("opportunity_id")
   createdBy     String?  @map("created_by")
-
   createdAt DateTime @default(now()) @map("created_at")
-
   client      Client?      @relation(fields: [clientId], references: [id])
   opportunity Opportunity? @relation(fields: [opportunityId], references: [id])
   creator     User?        @relation(fields: [createdBy], references: [id])
-
   @@map("activities")
+}
+
+model Tariff {
+  id              String    @id @default(uuid())
+  company         String?
+  tariffType      String?   @map("tariff_type")
+  validFrom       DateTime? @map("valid_from") @db.Date
+  validUntil      DateTime? @map("valid_until") @db.Date
+  energyPriceP1   Float?    @map("energy_price_p1")
+  energyPriceP2   Float?    @map("energy_price_p2")
+  energyPriceP3   Float?    @map("energy_price_p3")
+  energyPriceP4   Float?    @map("energy_price_p4")
+  energyPriceP5   Float?    @map("energy_price_p5")
+  energyPriceP6   Float?    @map("energy_price_p6")
+  powerPriceP1    Float?    @map("power_price_p1")
+  powerPriceP2    Float?    @map("power_price_p2")
+  powerPriceP3    Float?    @map("power_price_p3")
+  powerPriceP4    Float?    @map("power_price_p4")
+  powerPriceP5    Float?    @map("power_price_p5")
+  powerPriceP6    Float?    @map("power_price_p6")
+  commissionKwh   Float?    @map("commission_kwh")
+  commissionPower Float?    @map("commission_power")
+  bonus           String?
+  permanenceMonths Int?     @map("permanence_months")
+  conditions      String?
+  extractedData   Json?     @map("extracted_data")
+  fileName        String?   @map("file_name")
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  @@map("tariffs")
+}
+
+model Protocol {
+  id              String    @id @default(uuid())
+  proveedor       String?
+  vigenciaInicio  DateTime? @map("vigencia_inicio") @db.Date
+  vigenciaFin     DateTime? @map("vigencia_fin") @db.Date
+  data            Json?
+  fileName        String?   @map("file_name")
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  @@map("protocols")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  tarifes          Tarifa[]
+  agentComissions  AgentComission[]
+  @@map("companies")
+}
+
+model Tarifa {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  nombre     String?
+  tipus      String?
+  preuKwh    Float?   @map("preu_kwh")
+  preuKw     Float?   @map("preu_kw")
+  peatge     Float?
+  condicions String?
+  activa     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  company      Company       @relation(fields: [companyId], references: [id])
+  oportunitats Oportunitat[]
+  @@map("tarifes")
+}
+
+model Oportunitat {
+  id           String   @id @default(uuid())
+  clientId     String   @map("client_id")
+  tarifaNovaId String   @map("tarifa_nova_id")
+  estalviAnual Float?   @map("estalvi_anual")
+  estat        String   @default("oportunitat")
+  createdAt    DateTime @default(now()) @map("created_at")
+  client    Client @relation(fields: [clientId], references: [id])
+  tarifaNova Tarifa @relation(fields: [tarifaNovaId], references: [id])
+  @@map("oportunitats")
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  nombre        String
+  nif           String   @unique
+  email         String?
+  telefon       String?
+  tipus         String   @default("autonom")
+  irpfRetencio  Float    @default(15) @map("irpf_retencio")
+  createdAt     DateTime @default(now()) @map("created_at")
+  comissions   AgentComission[]
+  liquidations Liquidation[]
+  @@map("agents")
+}
+
+model AgentComission {
+  id          String  @id @default(uuid())
+  agentId     String  @map("agent_id")
+  companyId   String  @map("company_id")
+  producte    String?
+  percentatge Float
+  actiu       Boolean @default(true)
+  agent   Agent   @relation(fields: [agentId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+  @@map("agent_comissions")
+}
+
+model Liquidation {
+  id            String   @id @default(uuid())
+  agentId       String   @map("agent_id")
+  periodeInicio DateTime @map("periode_inicio") @db.Date
+  periodeFin    DateTime @map("periode_fin") @db.Date
+  totalBrut     Float    @default(0) @map("total_brut")
+  retencioIrpf  Float    @default(0) @map("retencio_irpf")
+  totalNet      Float    @default(0) @map("total_net")
+  estat         String   @default("esborrany")
+  linies        Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  agent Agent @relation(fields: [agentId], references: [id])
+  @@map("liquidations")
+}
+
+model Factura {
+  id                   String    @id @default(uuid())
+  numero               String    @unique
+  serie                String    @default("A")
+  clientId             String    @map("client_id")
+  dataFactura          DateTime  @map("data_factura") @db.Date
+  baseImponible        Float     @map("base_imponible")
+  ivaPercentatge       Float     @default(21) @map("iva_percentatge")
+  ivaImport            Float     @map("iva_import")
+  total                Float
+  estat                String    @default("esborrany")
+  verifactuHash        String?   @map("verifactu_hash")
+  verifactuHashAnterior String?  @map("verifactu_hash_anterior")
+  verifactuQr          String?   @map("verifactu_qr")
+  verifactuResposta    Json?     @map("verifactu_resposta")
+  linies               Json?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  client Client @relation(fields: [clientId], references: [id])
+  @@map("facturas")
 }
