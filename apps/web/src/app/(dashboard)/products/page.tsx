@@ -1,9 +1,9 @@
 'use client'
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { productsApi } from '@/lib/api'
+import { productsApi, api } from '@/lib/api'
 import { toast } from 'sonner'
-import { Upload, Loader2, Package, Filter, Check, X } from 'lucide-react'
+import { Upload, Loader2, Package, Filter, Check, X, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function ProductsPage() {
@@ -12,6 +12,7 @@ export default function ProductsPage() {
   const [companyFilter, setCompanyFilter] = useState('')
   const [tipusFilter, setTipusFilter] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<any>({})
 
@@ -74,7 +75,24 @@ export default function ProductsPage() {
           <h1 className="text-xl font-semibold text-gray-900">Productes i Tarifes</h1>
           <p className="text-sm text-gray-500 mt-0.5">{tarifes.length} tarifes registrades</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              setSyncing(true)
+              try {
+                const res = await api.post('/tariff-sync/sync-email').then(r => r.data)
+                toast.success(`${res.tarifes} tarifes importades, ${res.opportunities} oportunitats detectades`)
+                qc.invalidateQueries({ queryKey: ['products'] })
+                qc.invalidateQueries({ queryKey: ['companies'] })
+              } catch { toast.error('Error sincronitzant emails') }
+              finally { setSyncing(false) }
+            }}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            Sincronitzar email
+          </button>
           <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" className="hidden" onChange={handleUpload} />
           <button
             onClick={() => fileRef.current?.click()}
