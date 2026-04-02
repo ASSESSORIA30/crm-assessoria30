@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── ENUMS ─────────────────────────────────────────────────────────
+// ─── ENUMS ─────────────────────────────────────────────────────────────
 
 enum UserRole {
   admin
@@ -75,7 +75,7 @@ enum ActivityType {
   system
 }
 
-// ─── USERS ─────────────────────────────────────────────────────────
+// ─── USERS ─────────────────────────────────────────────────────────────
 
 model User {
   id           String   @id @default(uuid())
@@ -123,7 +123,7 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-// ─── CLIENTS ───────────────────────────────────────────────────────
+// ─── CLIENTS ───────────────────────────────────────────────────────────
 
 model Client {
   id          String       @id @default(uuid())
@@ -150,11 +150,12 @@ model Client {
   supplies      Supply[]
   opportunities Opportunity[]
   activities    Activity[]
+  oportunitats  Oportunitat[]
 
   @@map("clients")
 }
 
-// ─── SUPPLIES ──────────────────────────────────────────────────────
+// ─── SUPPLIES ──────────────────────────────────────────────────────────
 
 model Supply {
   id              String       @id @default(uuid())
@@ -199,7 +200,7 @@ model Supply {
   @@map("supplies")
 }
 
-// ─── OPPORTUNITIES ─────────────────────────────────────────────────
+// ─── OPPORTUNITIES ─────────────────────────────────────────────────────
 
 model Opportunity {
   id              String           @id @default(uuid())
@@ -242,7 +243,7 @@ model Opportunity {
   @@map("opportunities")
 }
 
-// ─── ACTIVITIES ────────────────────────────────────────────────────
+// ─── ACTIVITIES ─────────────────────────────────────────────────────────
 
 model Activity {
   id            String        @id @default(uuid())
@@ -265,4 +266,99 @@ model Activity {
   creator     User?        @relation(fields: [createdBy], references: [id])
 
   @@map("activities")
+}
+
+// ─── TARIFFS ───────────────────────────────────────────────────────────
+
+model Tariff {
+  id              String    @id @default(uuid())
+  company         String?
+  tariffType      String?   @map("tariff_type")
+  validFrom       DateTime? @map("valid_from") @db.Date
+  validUntil      DateTime? @map("valid_until") @db.Date
+  energyPriceP1   Float?    @map("energy_price_p1")
+  energyPriceP2   Float?    @map("energy_price_p2")
+  energyPriceP3   Float?    @map("energy_price_p3")
+  energyPriceP4   Float?    @map("energy_price_p4")
+  energyPriceP5   Float?    @map("energy_price_p5")
+  energyPriceP6   Float?    @map("energy_price_p6")
+  powerPriceP1    Float?    @map("power_price_p1")
+  powerPriceP2    Float?    @map("power_price_p2")
+  powerPriceP3    Float?    @map("power_price_p3")
+  powerPriceP4    Float?    @map("power_price_p4")
+  powerPriceP5    Float?    @map("power_price_p5")
+  powerPriceP6    Float?    @map("power_price_p6")
+  commissionKwh   Float?    @map("commission_kwh")
+  commissionPower Float?    @map("commission_power")
+  bonus           String?
+  permanenceMonths Int?     @map("permanence_months")
+  conditions      String?
+  extractedData   Json?     @map("extracted_data")
+  fileName        String?   @map("file_name")
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("tariffs")
+}
+
+// ─── PROTOCOLS ─────────────────────────────────────────────────────────
+
+model Protocol {
+  id              String    @id @default(uuid())
+  proveedor       String?
+  vigenciaInicio  DateTime? @map("vigencia_inicio") @db.Date
+  vigenciaFin     DateTime? @map("vigencia_fin") @db.Date
+  data            Json?
+  fileName        String?   @map("file_name")
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("protocols")
+}
+
+// ─── COMPANIES & TARIFES (Products module) ────────────────────────────
+
+model Company {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tarifes Tarifa[]
+
+  @@map("companies")
+}
+
+model Tarifa {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  nombre     String?
+  tipus      String?
+  preuKwh    Float?   @map("preu_kwh")
+  preuKw     Float?   @map("preu_kw")
+  peatge     Float?
+  condicions String?
+  activa     Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  company      Company       @relation(fields: [companyId], references: [id])
+  oportunitats Oportunitat[]
+
+  @@map("tarifes")
+}
+
+// ─── OPORTUNITATS (Opportunity detector) ──────────────────────────────
+
+model Oportunitat {
+  id           String   @id @default(uuid())
+  clientId     String   @map("client_id")
+  tarifaNovaId String   @map("tarifa_nova_id")
+  estalviAnual Float?   @map("estalvi_anual")
+  estat        String   @default("oportunitat")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  client    Client @relation(fields: [clientId], references: [id])
+  tarifaNova Tarifa @relation(fields: [tarifaNovaId], references: [id])
+
+  @@map("oportunitats")
 }

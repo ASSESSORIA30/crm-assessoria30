@@ -8,6 +8,8 @@ import { ClientsModule } from './modules/clients/clients.module'
 import { SuppliesModule }from './modules/supplies/supplies.module'
 import { OpportunitiesModule } from './modules/opportunities/opportunities.module'
 import { ProtocolsModule } from './modules/protocols/protocols.module'
+import { ProductsModule } from './modules/products/products.module'
+import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ProtocolsModule } from './modules/protocols/protocols.module'
     SuppliesModule,
     OpportunitiesModule,
     ProtocolsModule,
+    ProductsModule,
+    OportunitatsModule,
   ],
 })
 export class AppModule {}
