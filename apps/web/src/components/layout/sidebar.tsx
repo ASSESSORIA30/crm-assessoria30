@@ -21,9 +21,10 @@ const NAV = [
   { href: '/comparisons',      label: 'Comparatives',     icon: BarChart2        },
   { href: '/contracts',        label: 'Contractes',       icon: FileText         },
   { href: '/renewals',         label: 'Renovacions',      icon: RefreshCw        },
-  { href: '/tasks',            label: 'Tasques',          icon: CheckSquare,     section: 'GESTIÓ'    },
+  { href: '/tasks',            label: 'Tasques',          icon: CheckSquare,     section: 'GESTI\u00d3'    },
   { href: '/team',             label: 'El meu equip',     icon: Network,         roles: ['admin', 'direction', 'collaborator'] },
   { href: '/commissions',      label: 'Comissions',       icon: DollarSign       },
+  { href: '/liquidations',     label: 'Liquidacions',     icon: DollarSign,      roles: ['admin', 'direction'] },
 ]
 
 export function Sidebar() {
@@ -75,7 +76,7 @@ export function Sidebar() {
       <div className="px-3 pb-4 border-t border-white/10 pt-3 space-y-1">
         <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all">
           <Settings className="w-4 h-4" />
-          Configuració
+          Configuraci\u00f3
         </Link>
         <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer group transition-all" onClick={logout}>
           <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
