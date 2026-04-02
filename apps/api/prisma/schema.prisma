@@ -363,3 +363,18 @@ model Factura {
   client Client @relation(fields: [clientId], references: [id])
   @@map("facturas")
 }
+
+model Comparison {
+  id            String   @id @default(uuid())
+  cups          String?
+  clientName    String?  @map("client_name")
+  clientNif     String?  @map("client_nif")
+  clientAddress String?  @map("client_address")
+  currentData   Json?    @map("current_data")
+  results       Json?
+  bestTariffId  String?  @map("best_tariff_id")
+  totalSavings  Float?   @map("total_savings")
+  createdBy     String?  @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  @@map("comparisons")
+}
