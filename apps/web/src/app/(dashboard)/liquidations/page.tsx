@@ -45,7 +45,7 @@ export default function LiquidationsPage() {
   const generateMut = useMutation({
     mutationFn: (d: any) => liqApi.generate(d),
     onSuccess: (res) => {
-      toast.success('Liquidaci\u00f3 generada')
+      toast.success('Liquidació generada')
       qc.invalidateQueries({ queryKey: ['liquidations'] })
       setSelectedId(res.id)
       setShowForm(false)
@@ -104,7 +104,7 @@ export default function LiquidationsPage() {
           </select>
           <button onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-            <Plus className="w-4 h-4" /> Nova liquidaci\u00f3
+            <Plus className="w-4 h-4" /> Nova liquidació
           </button>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function LiquidationsPage() {
       {/* Generate form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900">Generar liquidaci\u00f3</h2>
+          <h2 className="font-semibold text-gray-900">Generar liquidació</h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1 block">Agent</label>
@@ -195,7 +195,7 @@ export default function LiquidationsPage() {
                   <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Producte</th>
                   <th className="text-right px-3 py-2 text-xs font-medium text-gray-500">Altes</th>
                   <th className="text-right px-3 py-2 text-xs font-medium text-gray-500">Import cobrat</th>
-                  <th className="text-right px-3 py-2 text-xs font-medium text-gray-500">% Comissi\u00f3</th>
+                  <th className="text-right px-3 py-2 text-xs font-medium text-gray-500">% Comissió</th>
                   <th className="text-right px-3 py-2 text-xs font-medium text-gray-500">Total</th>
                 </tr>
               </thead>
@@ -215,7 +215,7 @@ export default function LiquidationsPage() {
             <div className="border-t border-gray-200 pt-4 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-gray-500">Total brut</span><span className="font-semibold">{fmtMoney(detail.totalBrut)}</span></div>
               {detail.retencioIrpf > 0 && (
-                <div className="flex justify-between"><span className="text-gray-500">Retenci\u00f3 IRPF ({detail.agent?.irpfRetencio}%)</span><span className="text-red-600">-{fmtMoney(detail.retencioIrpf)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Retenció IRPF ({detail.agent?.irpfRetencio}%)</span><span className="text-red-600">-{fmtMoney(detail.retencioIrpf)}</span></div>
               )}
               <div className="flex justify-between border-t border-gray-200 pt-2"><span className="font-bold text-gray-900">Total net</span><span className="font-bold text-green-700 text-lg">{fmtMoney(detail.totalNet)}</span></div>
             </div>
@@ -229,7 +229,7 @@ export default function LiquidationsPage() {
       ) : liquidations.length === 0 ? (
         <div className="text-center py-20">
           <DollarSign className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Cap liquidaci\u00f3. Clica &quot;Nova liquidaci\u00f3&quot; per generar-ne una.</p>
+          <p className="text-gray-400 text-sm">Cap liquidació. Clica &quot;Nova liquidació&quot; per generar-ne una.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -237,7 +237,7 @@ export default function LiquidationsPage() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Agent</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Per\u00edode</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Període</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Total brut</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">IRPF</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Total net</th>

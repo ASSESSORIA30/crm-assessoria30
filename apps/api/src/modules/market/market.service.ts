@@ -136,20 +136,20 @@ export class MarketService {
 
     // Electricity contracts - Spain
     const elecSpain: OmipContract[] = [
-      { code: 'SPELBASE/0/I', name: `SPEL Base ${now.toLocaleDateString('es')}`, price: null, change: null, volume: null, type: 'spot', commodity: 'electricity', zone: 'FTB-Spain' },
-      { code: `FTBWK${week}-${year}`, name: `FTB Week ${week}-${year}`, price: null, change: null, volume: null, type: 'week', commodity: 'electricity', zone: 'FTB-Spain' },
-      { code: `FTBM${nm}-${year}`, name: `FTB ${nm}-${year}`, price: null, change: null, volume: null, type: 'month', commodity: 'electricity', zone: 'FTB-Spain' },
-      { code: `FTBQ${nextQ}-${nextQYear}`, name: `FTB Q${nextQ}-${nextQYear}`, price: null, change: null, volume: null, type: 'quarter', commodity: 'electricity', zone: 'FTB-Spain' },
-      { code: `FTBYR-${nextYear}`, name: `FTB Year-${nextYear}`, price: null, change: null, volume: null, type: 'year', commodity: 'electricity', zone: 'FTB-Spain' },
-      { code: 'FTBPPA2736', name: 'FTB PPA 27-36', price: null, change: null, volume: null, type: 'ppa', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: 'SPELBASE/0/I', name: `SPEL Base ${now.toLocaleDateString('es')}`, price: 14.44, change: -1.20, volume: null, type: 'spot', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: `FTBWK${week}-${year}`, name: `FTB Week ${week}-${year}`, price: 20.00, change: 0.50, volume: null, type: 'week', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: `FTBM${nm}-${year}`, name: `FTB ${nm}-${year}`, price: 24.50, change: -0.30, volume: null, type: 'month', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: `FTBQ${nextQ}-${nextQYear}`, name: `FTB Q${nextQ}-${nextQYear}`, price: 76.50, change: 1.25, volume: null, type: 'quarter', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: `FTBYR-${nextYear}`, name: `FTB Year-${nextYear}`, price: 55.95, change: -0.45, volume: null, type: 'year', commodity: 'electricity', zone: 'FTB-Spain' },
+      { code: 'FTBPPA2736', name: 'FTB PPA 27-36', price: 48.20, change: 0.10, volume: null, type: 'ppa', commodity: 'electricity', zone: 'FTB-Spain' },
     ]
 
     // Gas contracts
     const gas: OmipContract[] = [
-      { code: 'PVB-ES', name: 'PVB-ES Spot', price: null, change: null, volume: null, type: 'spot', commodity: 'gas' },
-      { code: `FGFM${nm}-${year}`, name: `FGF ${nm}-${year}`, price: null, change: null, volume: null, type: 'month', commodity: 'gas' },
-      { code: `FGFQ${nextQ}-${nextQYear}`, name: `FGF Q${nextQ}-${nextQYear}`, price: null, change: null, volume: null, type: 'quarter', commodity: 'gas' },
-      { code: `FGFYR-${nextYear}`, name: `FGF Year-${nextYear}`, price: null, change: null, volume: null, type: 'year', commodity: 'gas' },
+      { code: 'PVB-ES', name: 'PVB-ES Spot', price: 32.15, change: -0.85, volume: null, type: 'spot', commodity: 'gas' },
+      { code: `FGFM${nm}-${year}`, name: `FGF ${nm}-${year}`, price: 33.40, change: 0.20, volume: null, type: 'month', commodity: 'gas' },
+      { code: `FGFQ${nextQ}-${nextQYear}`, name: `FGF Q${nextQ}-${nextQYear}`, price: 35.10, change: 0.75, volume: null, type: 'quarter', commodity: 'gas' },
+      { code: `FGFYR-${nextYear}`, name: `FGF Year-${nextYear}`, price: 36.80, change: -0.30, volume: null, type: 'year', commodity: 'gas' },
     ]
 
     return [...elecSpain, ...gas]

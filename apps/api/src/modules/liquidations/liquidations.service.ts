@@ -111,7 +111,7 @@ export class LiquidationsService {
 
     const linies = (liq.linies as any[]) ?? []
     const fmtDate = (d: Date) => d.toLocaleDateString('ca-ES')
-    const fmtMoney = (n: number) => `${n.toFixed(2)} \u20ac`
+    const fmtMoney = (n: number) => `${n.toFixed(2)} €`
 
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({ size: 'A4', margin: 50 })
@@ -124,7 +124,7 @@ export class LiquidationsService {
       doc.fontSize(20).font('Helvetica-Bold')
         .text('Assessoria 3.0', 50, 50)
       doc.fontSize(10).font('Helvetica')
-        .text('Liquidaci\u00f3 de comissions', 50, 75)
+        .text('Liquidació de comissions', 50, 75)
 
       doc.moveTo(50, 95).lineTo(545, 95).stroke('#e2e8f0')
 
@@ -134,8 +134,8 @@ export class LiquidationsService {
       doc.font('Helvetica')
         .text(`${liq.agent.nombre}`, 110, 110)
         .text(`NIF: ${liq.agent.nif}`, 50, 128)
-        .text(`Tipus: ${liq.agent.tipus === 'autonom' ? 'Aut\u00f2nom' : 'Empresa'}`, 250, 128)
-        .text(`Per\u00edode: ${fmtDate(liq.periodeInicio)} - ${fmtDate(liq.periodeFin)}`, 50, 146)
+        .text(`Tipus: ${liq.agent.tipus === 'autonom' ? 'Autònom' : 'Empresa'}`, 250, 128)
+        .text(`Període: ${fmtDate(liq.periodeInicio)} - ${fmtDate(liq.periodeFin)}`, 50, 146)
 
       doc.moveTo(50, 170).lineTo(545, 170).stroke('#e2e8f0')
 
@@ -149,7 +149,7 @@ export class LiquidationsService {
         .text('Producte', colX[1], tableTop)
         .text('Altes', colX[2], tableTop, { width: 60, align: 'right' })
         .text('Import cobrat', colX[3], tableTop, { width: 60, align: 'right' })
-        .text('% Comissi\u00f3', colX[4], tableTop, { width: 60, align: 'right' })
+        .text('% Comissió', colX[4], tableTop, { width: 60, align: 'right' })
         .text('Total', colX[5], tableTop, { width: 60, align: 'right' })
 
       doc.moveTo(50, tableTop + 15).lineTo(545, tableTop + 15).stroke('#e2e8f0')
@@ -183,7 +183,7 @@ export class LiquidationsService {
 
       if (liq.retencioIrpf > 0) {
         doc.font('Helvetica').fontSize(10)
-          .text(`Retenci\u00f3 IRPF (${liq.agent.irpfRetencio}%):`, 350, y, { width: 120, align: 'right' })
+          .text(`Retenció IRPF (${liq.agent.irpfRetencio}%):`, 350, y, { width: 120, align: 'right' })
           .text(`-${fmtMoney(liq.retencioIrpf)}`, 475, y, { width: 60, align: 'right' })
         y += 18
       }

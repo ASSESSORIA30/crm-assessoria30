@@ -37,8 +37,8 @@ export default function CommissionsPage() {
 
   const addComMut = useMutation({
     mutationFn: (d: any) => liqApi.addComission(selectedAgent!, d),
-    onSuccess: () => { toast.success('Comissi\u00f3 afegida'); qc.invalidateQueries({ queryKey: ['agent-comissions', selectedAgent] }); setShowComForm(false); setComForm({ companyId: '', producte: '', percentatge: 0 }) },
-    onError: () => toast.error('Error afegint comissi\u00f3'),
+    onSuccess: () => { toast.success('Comissió afegida'); qc.invalidateQueries({ queryKey: ['agent-comissions', selectedAgent] }); setShowComForm(false); setComForm({ companyId: '', producte: '', percentatge: 0 }) },
+    onError: () => toast.error('Error afegint comissió'),
   })
 
   const agent = agents.find((a: any) => a.id === selectedAgent)
@@ -78,7 +78,7 @@ export default function CommissionsPage() {
               <label className="text-xs font-medium text-gray-500 mb-1 block">Tipus</label>
               <select value={agentForm.tipus} onChange={e => setAgentForm({ ...agentForm, tipus: e.target.value })}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2">
-                <option value="autonom">Aut\u00f2nom</option>
+                <option value="autonom">Autònom</option>
                 <option value="empresa">Empresa</option>
               </select>
             </div>
@@ -88,15 +88,29 @@ export default function CommissionsPage() {
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Tel\u00e8fon</label>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Telèfon</label>
               <input value={agentForm.telefon} onChange={e => setAgentForm({ ...agentForm, telefon: e.target.value })}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">IRPF %</label>
-              <input type="number" value={agentForm.irpfRetencio} onChange={e => setAgentForm({ ...agentForm, irpfRetencio: Number(e.target.value) })}
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
-            </div>
+            {agentForm.tipus === 'autonom' && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">IRPF %</label>
+                <input type="number" value={agentForm.irpfRetencio} onChange={e => setAgentForm({ ...agentForm, irpfRetencio: Number(e.target.value) })}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
+              </div>
+            )}
+            {agentForm.tipus === 'empresa' && (
+              <>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">Nom administrador</label>
+                  <input placeholder="Nom i cognoms" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">NIF administrador</label>
+                  <input placeholder="NIF personal" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
+                </div>
+              </>
+            )}
           </div>
           <button onClick={() => createAgentMut.mutate(agentForm)}
             disabled={!agentForm.nombre || !agentForm.nif || createAgentMut.isPending}
@@ -127,7 +141,7 @@ export default function CommissionsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm text-gray-900">{a.nombre}</p>
-                    <p className="text-xs text-gray-400">{a.nif} &middot; {a.tipus === 'autonom' ? 'Aut\u00f2nom' : 'Empresa'}</p>
+                    <p className="text-xs text-gray-400">{a.nif} &middot; {a.tipus === 'autonom' ? 'Autònom' : 'Empresa'}</p>
                   </div>
                   <span className="text-xs text-gray-400">{a._count?.liquidations ?? 0} liq.</span>
                 </div>
@@ -147,7 +161,7 @@ export default function CommissionsPage() {
                 </div>
                 <button onClick={() => setShowComForm(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700">
-                  <Plus className="w-3.5 h-3.5" /> Afegir comissi\u00f3
+                  <Plus className="w-3.5 h-3.5" /> Afegir comissió
                 </button>
               </div>
 
@@ -176,7 +190,7 @@ export default function CommissionsPage() {
 
               <div className="p-6">
                 {comissions.length === 0 ? (
-                  <p className="text-sm text-gray-400 text-center py-8">Cap comissi\u00f3 configurada per aquest agent.</p>
+                  <p className="text-sm text-gray-400 text-center py-8">Cap comissió configurada per aquest agent.</p>
                 ) : (
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">

@@ -41,14 +41,14 @@ export class RenewalsService {
         const supply = c.supplies?.[0]
         const date = c.dataRenovacio
           ? new Date(c.dataRenovacio).toLocaleDateString('ca-ES')
-          : 'pr\u00f2ximament'
+          : 'pròximament'
         const tariff = supply?.tariff ?? 'la teva tarifa actual'
-        const supplier = supply?.currentSupplier ?? 'el teu prove\u00efdor'
+        const supplier = supply?.currentSupplier ?? 'el teu proveïdor'
 
         const text = [
-          `Hola ${c.name}! \ud83d\udc4b`,
-          `Et recordem que la teva tarifa "${tariff}" amb ${supplier} ven\u00e7 el ${date}.`,
-          `Tenim ofertes millors per a tu. Vols que et fem una comparativa gratu\u00efta?`,
+          `Hola ${c.name}! 👋`,
+          `Et recordem que la teva tarifa "${tariff}" amb ${supplier} venç el ${date}.`,
+          `Tenim ofertes millors per a tu. Vols que et fem una comparativa gratuïta?`,
           `Contacta'ns per revisar les teves opcions.`,
         ].join('\n')
 
@@ -84,13 +84,13 @@ export class RenewalsService {
         const supply = c.supplies?.[0]
         const date = c.dataRenovacio
           ? new Date(c.dataRenovacio).toLocaleDateString('ca-ES')
-          : 'pr\u00f2ximament'
+          : 'pròximament'
 
         return this.mailjet.post('send', { version: 'v3.1' }).request({
           Messages: [{
             From: { Email: fromEmail, Name: fromName },
             To: [{ Email: c.email!, Name: c.name }],
-            Subject: `${c.name}, la teva tarifa ven\u00e7 el ${date}`,
+            Subject: `${c.name}, la teva tarifa venç el ${date}`,
             HTMLPart: this.buildEmailHtml(c.name, date, supply?.tariff, supply?.currentSupplier),
           }],
         })
@@ -111,25 +111,25 @@ export class RenewalsService {
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
   <div style="text-align: center; padding: 24px 0; border-bottom: 2px solid #e2e8f0;">
-    <h1 style="font-size: 20px; color: #0f172a; margin: 0;">\u26a1 Assessoria 3.0</h1>
+    <h1 style="font-size: 20px; color: #0f172a; margin: 0;">⚡ Assessoria 3.0</h1>
   </div>
   <div style="padding: 32px 0;">
     <p style="font-size: 16px;">Hola <strong>${name}</strong>,</p>
-    <p>Et recordem que la teva tarifa <strong>${tariff ?? 'actual'}</strong> amb <strong>${supplier ?? 'el teu prove\u00efdor'}</strong> ven\u00e7 el <strong>${date}</strong>.</p>
+    <p>Et recordem que la teva tarifa <strong>${tariff ?? 'actual'}</strong> amb <strong>${supplier ?? 'el teu proveïdor'}</strong> venç el <strong>${date}</strong>.</p>
     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 24px 0;">
-      <p style="margin: 0; font-size: 15px;">\ud83c\udfaf <strong>Tenim ofertes exclusives</strong> que et poden estalviar fins a un <strong>30%</strong> en la teva factura.</p>
+      <p style="margin: 0; font-size: 15px;">🎯 <strong>Tenim ofertes exclusives</strong> que et poden estalviar fins a un <strong>30%</strong> en la teva factura.</p>
     </div>
-    <p>Vols que et fem una comparativa gratu\u00efta i sense comprom\u00eds?</p>
+    <p>Vols que et fem una comparativa gratuïta i sense compromís?</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="mailto:info@assessoria30.com?subject=Renovaci\u00f3 tarifa - ${name}"
+      <a href="mailto:info@assessoria30.com?subject=Renovació tarifa - ${name}"
          style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-        S\u00ed, vull la meva comparativa!
+        Sí, vull la meva comparativa!
       </a>
     </div>
     <p style="color: #64748b; font-size: 13px;">Si tens qualsevol dubte, no dubtis en contactar-nos.</p>
   </div>
   <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center; color: #94a3b8; font-size: 12px;">
-    <p>Assessoria 3.0 \u2014 Estalvia en energia i telecomunicacions</p>
+    <p>Assessoria 3.0 — Estalvia en energia i telecomunicacions</p>
   </div>
 </body>
 </html>`

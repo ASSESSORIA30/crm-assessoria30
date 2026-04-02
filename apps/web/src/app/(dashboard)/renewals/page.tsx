@@ -53,7 +53,7 @@ export default function RenewalsPage() {
       : links
 
     if (filtered.length === 0) {
-      toast.error('Cap client amb tel\u00e8fon seleccionat')
+      toast.error('Cap client amb telèfon seleccionat')
       return
     }
 
@@ -61,7 +61,7 @@ export default function RenewalsPage() {
       filtered.forEach((l: any) => window.open(l.url, '_blank'))
       toast.success(`${filtered.length} links oberts`)
     } else {
-      const csv = ['Nom,Tel\u00e8fon,URL,Missatge']
+      const csv = ['Nom,Telèfon,URL,Missatge']
       filtered.forEach((l: any) => {
         csv.push(`"${l.name}","${l.phone}","${l.url}","${l.message.replace(/"/g, '""')}"`)
       })
@@ -96,7 +96,7 @@ export default function RenewalsPage() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Renovacions</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {clients.length} clients amb renovaci\u00f3 en els propers {days} dies
+            {clients.length} clients amb renovació en els propers {days} dies
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export default function RenewalsPage() {
       ) : clients.length === 0 ? (
         <div className="text-center py-20">
           <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Cap client amb renovaci\u00f3 en els propers {days} dies.</p>
+          <p className="text-gray-400 text-sm">Cap client amb renovació en els propers {days} dies.</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -162,11 +162,11 @@ export default function RenewalsPage() {
                   />
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Client</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Tel\u00e8fon</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Telèfon</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Data renovaci\u00f3</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Data renovació</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Tarifa actual</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Prove\u00efdor</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Proveïdor</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

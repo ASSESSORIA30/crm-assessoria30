@@ -12,7 +12,7 @@ type ContractType = 'spot' | 'week' | 'month' | 'quarter' | 'year' | 'ppa'
 const ZONES = [
   { id: 'FTB-Spain', label: 'Espanya (FTB)' },
   { id: 'FPB-Portugal', label: 'Portugal (FPB)' },
-  { id: 'FFB-France', label: 'Fran\u00e7a (FFB)' },
+  { id: 'FFB-France', label: 'França (FFB)' },
   { id: 'FDB-Germany', label: 'Alemanya (FDB)' },
 ]
 
@@ -180,10 +180,10 @@ export default function MarketPage() {
               </div>
               {selected?.price != null && (
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{selected.price.toFixed(2)} <span className="text-sm text-gray-400">\u20ac/MWh</span></p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{selected.price.toFixed(2)} <span className="text-sm text-gray-400">€/MWh</span></p>
                   {selected.change != null && (
                     <p className={cn('text-sm font-medium', selected.change > 0 ? 'text-red-500' : selected.change < 0 ? 'text-green-500' : 'text-gray-400')}>
-                      {selected.change > 0 ? '+' : ''}{selected.change.toFixed(2)} \u20ac
+                      {selected.change > 0 ? '+' : ''}{selected.change.toFixed(2)} €
                     </p>
                   )}
                 </div>
@@ -198,7 +198,7 @@ export default function MarketPage() {
                   <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" domain={['auto', 'auto']} />
                   <Tooltip
                     contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13 }}
-                    formatter={(value: any) => [`${Number(value).toFixed(2)} \u20ac/MWh`, 'Preu']}
+                    formatter={(value: any) => [`${Number(value).toFixed(2)} €/MWh`, 'Preu']}
                   />
                   <Line
                     type="monotone"
@@ -212,7 +212,7 @@ export default function MarketPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px] text-gray-300">
-                <p className="text-sm">Sense dades hist\u00f2riques disponibles</p>
+                <p className="text-sm">Sense dades històriques disponibles</p>
               </div>
             )}
           </div>
@@ -220,7 +220,7 @@ export default function MarketPage() {
           {/* Right: Next contracts */}
           <div className="col-span-3 space-y-4">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Seg\u00fcents contractes</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Següents contractes</p>
               {nextContracts.length > 0 ? (
                 <div className="space-y-2">
                   {nextContracts.map((c: any) => (
@@ -229,13 +229,13 @@ export default function MarketPage() {
                       <p className="text-xs font-mono text-gray-400">{c.code}</p>
                       <p className="text-sm font-medium text-gray-700">{c.name}</p>
                       {c.price != null && (
-                        <p className="text-lg font-bold text-gray-900 mt-1 tabular-nums">{c.price.toFixed(2)} <span className="text-xs text-gray-400">\u20ac/MWh</span></p>
+                        <p className="text-lg font-bold text-gray-900 mt-1 tabular-nums">{c.price.toFixed(2)} <span className="text-xs text-gray-400">€/MWh</span></p>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">Cap contracte seg\u00fcent</p>
+                <p className="text-sm text-gray-400">Cap contracte següent</p>
               )}
             </div>
 

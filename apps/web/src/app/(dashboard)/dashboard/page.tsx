@@ -104,7 +104,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Estad\u00edstiques */}
+      {/* Estadístiques */}
       <StatsPanel />
 
       {/* Modal */}
@@ -122,7 +122,7 @@ const SERVICE_COLORS: Record<string, string> = {
 }
 const SERVICE_LABELS: Record<string, string> = {
   electric: 'Llum', gas: 'Gas', fiber: 'Fibra',
-  mobile: 'M\u00f2bil', insurance: 'Asseguran\u00e7a', alarm: 'Alarma',
+  mobile: 'Mòbil', insurance: 'Assegurança', alarm: 'Alarma',
 }
 const PIE_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#6366f1', '#ec4899', '#14b8a6', '#f97316', '#64748b']
 
@@ -150,8 +150,8 @@ function StatsPanel() {
   return (
     <section>
       <SectionLabel>
-        Estad\u00edstiques
-        <span className="text-gray-400 font-normal ml-1.5">\u2014 contractes actius</span>
+        Estadístiques
+        <span className="text-gray-400 font-normal ml-1.5">— contractes actius</span>
       </SectionLabel>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Per tarifa */}

@@ -38,7 +38,7 @@ export default function ProtocolUploadPage() {
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Parsejar Protocol de Comissions</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Puja un PDF de protocol de comissions i el sistema extraur\u00e0 autom\u00e0ticament les dades amb IA.
+          Puja un PDF de protocol de comissions i el sistema extraurà automàticament les dades amb IA.
         </p>
       </div>
 
@@ -90,15 +90,15 @@ export default function ProtocolUploadPage() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 bg-green-50">
             <CheckCircle className="w-5 h-5 text-green-600" />
-            <h2 className="font-semibold text-sm text-gray-900">Resultat de l&apos;an\u00e0lisi</h2>
+            <h2 className="font-semibold text-sm text-gray-900">Resultat de l&apos;anàlisi</h2>
           </div>
 
           <div className="p-6 space-y-4">
             {result.proveedor && (
-              <Field label="Prove\u00efdor" value={result.proveedor} />
+              <Field label="Proveïdor" value={result.proveedor} />
             )}
             {result.vigencia && (
-              <Field label="Vig\u00e8ncia" value={`${result.vigencia.inicio ?? '?'} \u2192 ${result.vigencia.fin ?? '?'}`} />
+              <Field label="Vigència" value={`${result.vigencia.inicio ?? '?'} → ${result.vigencia.fin ?? '?'}`} />
             )}
 
             {result.productos_baf?.length > 0 && (
@@ -109,7 +109,7 @@ export default function ProtocolUploadPage() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Producte</th>
-                        <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Comissi\u00f3</th>
+                        <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">Comissió</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -126,9 +126,9 @@ export default function ProtocolUploadPage() {
             )}
 
             {result.extra_lotes && <Field label="Extra Lotes" value={result.extra_lotes} />}
-            {result.fidelizacion_trimestral && <Field label="Fidelitzaci\u00f3 Trimestral" value={result.fidelizacion_trimestral} />}
+            {result.fidelizacion_trimestral && <Field label="Fidelització Trimestral" value={result.fidelizacion_trimestral} />}
             {result.incentivo_conectividad && <Field label="Incentiu Connectivitat" value={result.incentivo_conectividad} />}
-            {result.movil && <Field label="M\u00f2bil" value={result.movil} />}
+            {result.movil && <Field label="Mòbil" value={result.movil} />}
             {result.terminales && <Field label="Terminals" value={result.terminales} />}
             {result.tv_max && <Field label="TV / Max" value={result.tv_max} />}
 

@@ -129,13 +129,13 @@ export default function FacturasPage() {
           {/* Lines */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-gray-500">L\u00ednies</label>
-              <button onClick={addLine} className="text-xs text-blue-600 hover:underline">+ Afegir l\u00ednia</button>
+              <label className="text-xs font-medium text-gray-500">Línies</label>
+              <button onClick={addLine} className="text-xs text-blue-600 hover:underline">+ Afegir línia</button>
             </div>
             <div className="space-y-2">
               {linies.map((l, i) => (
                 <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                  <input placeholder="Descripci\u00f3" value={l.descripcio} onChange={(e) => updateLine(i, 'descripcio', e.target.value)}
+                  <input placeholder="Descripció" value={l.descripcio} onChange={(e) => updateLine(i, 'descripcio', e.target.value)}
                     className="col-span-6 text-sm border border-gray-200 rounded-lg px-3 py-2" />
                   <input type="number" min="1" value={l.quantitat} onChange={(e) => updateLine(i, 'quantitat', Number(e.target.value))}
                     className="col-span-2 text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" />
@@ -178,7 +178,7 @@ export default function FacturasPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">N\u00famero</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Número</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Client</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500">Data</th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Base</th>

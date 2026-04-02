@@ -114,10 +114,10 @@ export default function ComparisonsPage() {
     const best = results[0]
     const text = [
       `Hola ${form.clientName || 'client'}!`,
-      `Hem analitzat la teva tarifa actual i hem trobat una opci\u00f3 millor:`,
+      `Hem analitzat la teva tarifa actual i hem trobat una opció millor:`,
       `\u2705 ${best.company} - ${best.tariffType}`,
       `\ud83d\udcb0 Estalvi anual: ${fmtMoney(best.savingsEur)} (${best.savingsPct}%)`,
-      `Vols que t'ho expliquem sense comprom\u00eds?`,
+      `Vols que t'ho expliquem sense compromís?`,
     ].join('\n')
     const phone = '' // empty = no specific number
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank')
@@ -126,8 +126,8 @@ export default function ComparisonsPage() {
   function sendEmail() {
     if (!results?.[0]) return
     const best = results[0]
-    const subject = `Comparativa energ\u00e8tica - ${form.clientName || 'Client'}`
-    const body = `Hola ${form.clientName || ''},\n\nHem trobat una tarifa que et pot estalviar ${fmtMoney(best.savingsEur)}/any (${best.savingsPct}%).\n\nMillor opci\u00f3: ${best.company} - ${best.tariffType}\n\nContacta'ns per m\u00e9s detalls.\n\nAssessoria 3.0`
+    const subject = `Comparativa energètica - ${form.clientName || 'Client'}`
+    const body = `Hola ${form.clientName || ''},\n\nHem trobat una tarifa que et pot estalviar ${fmtMoney(best.savingsEur)}/any (${best.savingsPct}%).\n\nMillor opció: ${best.company} - ${best.tariffType}\n\nContacta'ns per més detalls.\n\nAssessoria 3.0`
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self')
   }
 
@@ -179,7 +179,7 @@ export default function ComparisonsPage() {
                 Buscar
               </button>
             </div>
-            {found && <p className="text-xs text-green-600 mt-1">Dades del client carregades autom\u00e0ticament</p>}
+            {found && <p className="text-xs text-green-600 mt-1">Dades del client carregades automàticament</p>}
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -194,7 +194,7 @@ export default function ComparisonsPage() {
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Adre\u00e7a</label>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Adreça</label>
               <input value={form.clientAddress} onChange={e => f('clientAddress', e.target.value)}
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" />
             </div>
@@ -202,7 +202,7 @@ export default function ComparisonsPage() {
 
           <button onClick={() => setStep(1)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-            Seg\u00fcent <ArrowRight className="w-4 h-4" />
+            Següent <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -211,11 +211,11 @@ export default function ComparisonsPage() {
       {step === 1 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
           <div>
-            <p className="text-sm font-semibold text-gray-900 mb-3">Pot\u00e8ncia contractada (kW)</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">Potència contractada (kW)</p>
             <div className="grid grid-cols-3 gap-4">
               {(['P1', 'P2', 'P3'] as const).map((p, i) => (
                 <div key={p}>
-                  <label className="text-xs text-gray-500 mb-1 block">Pot\u00e8ncia {p}</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Potència {p}</label>
                   <input type="number" step="any" value={form[`powerP${i + 1}` as keyof FormData]} onChange={e => f(`powerP${i + 1}` as keyof FormData, e.target.value)}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" placeholder="kW" />
                 </div>
@@ -237,26 +237,26 @@ export default function ComparisonsPage() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-gray-900 mb-3">Preus actuals energia (\u20ac/kWh)</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">Preus actuals energia (€/kWh)</p>
             <div className="grid grid-cols-6 gap-3">
               {(['P1', 'P2', 'P3', 'P4', 'P5', 'P6'] as const).map((p, i) => (
                 <div key={p}>
                   <label className="text-xs text-gray-500 mb-1 block">{p}</label>
                   <input type="number" step="any" value={form[`currentEnergyPriceP${i + 1}` as keyof FormData]} onChange={e => f(`currentEnergyPriceP${i + 1}` as keyof FormData, e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" placeholder="\u20ac/kWh" />
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" placeholder="€/kWh" />
                 </div>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-gray-900 mb-3">Preus actuals pot\u00e8ncia (\u20ac/kW/any)</p>
+            <p className="text-sm font-semibold text-gray-900 mb-3">Preus actuals potència (€/kW/any)</p>
             <div className="grid grid-cols-3 gap-4">
               {(['P1', 'P2', 'P3'] as const).map((p, i) => (
                 <div key={p}>
                   <label className="text-xs text-gray-500 mb-1 block">{p}</label>
                   <input type="number" step="any" value={form[`currentPowerPriceP${i + 1}` as keyof FormData]} onChange={e => f(`currentPowerPriceP${i + 1}` as keyof FormData, e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" placeholder="\u20ac/kW/any" />
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" placeholder="€/kW/any" />
                 </div>
               ))}
             </div>
@@ -283,7 +283,7 @@ export default function ComparisonsPage() {
             <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
               className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
               <option value="savingsEur">Ordenar per estalvi</option>
-              <option value="estimatedCommission">Ordenar per comissi\u00f3</option>
+              <option value="estimatedCommission">Ordenar per comissió</option>
               <option value="newCostTotal">Ordenar per preu total</option>
             </select>
             <button onClick={downloadPdf} className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50">
@@ -302,8 +302,8 @@ export default function ComparisonsPage() {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-4">
               <Trophy className="w-8 h-8 text-green-600" />
               <div className="flex-1">
-                <p className="font-semibold text-green-900">{sorted[0].company} \u2014 {sorted[0].tariffType}</p>
-                <p className="text-sm text-green-700">Millor opci\u00f3: estalvia {fmtMoney(sorted[0].savingsEur)}/any ({sorted[0].savingsPct}%)</p>
+                <p className="font-semibold text-green-900">{sorted[0].company} — {sorted[0].tariffType}</p>
+                <p className="text-sm text-green-700">Millor opció: estalvia {fmtMoney(sorted[0].savingsEur)}/any ({sorted[0].savingsPct}%)</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-green-700">{fmtMoney(sorted[0].savingsEur)}</p>
@@ -324,7 +324,7 @@ export default function ComparisonsPage() {
                     <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Cost nou</th>
                     <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Estalvi</th>
                     <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">%</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Comissi\u00f3 est.</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500">Comissió est.</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

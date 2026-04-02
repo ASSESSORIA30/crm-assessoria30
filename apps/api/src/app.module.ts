@@ -17,6 +17,7 @@ import { FacturasModule } from './modules/facturas/facturas.module'
 import { MarketModule } from './modules/market/market.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { ComparisonsModule } from './modules/comparisons/comparisons.module'
+import { StatsModule } from './modules/stats/stats.module'
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ComparisonsModule } from './modules/comparisons/comparisons.module'
     MarketModule,
     DashboardModule,
     ComparisonsModule,
+    StatsModule,
   ],
 })
 export class AppModule {}

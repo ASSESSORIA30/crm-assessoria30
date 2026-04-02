@@ -95,7 +95,7 @@ export class FacturasService {
       cp: process.env.EMPRESA_CP ?? '',
       poblacio: process.env.EMPRESA_POBLACIO ?? '',
     }
-    const fmtMoney = (n: number) => `${n.toFixed(2)} \u20ac`
+    const fmtMoney = (n: number) => `${n.toFixed(2)} €`
     const fmtDate = (d: Date) => d.toLocaleDateString('ca-ES')
 
     let qrImage: Buffer | null = null
@@ -121,7 +121,7 @@ export class FacturasService {
       doc.fontSize(11).font('Helvetica').fillColor('#64748b')
         .text(factura.numero, 400, 78, { align: 'right', width: 145 })
         .text(`Data: ${fmtDate(factura.dataFactura)}`, 400, 93, { align: 'right', width: 145 })
-        .text(`S\u00e8rie: ${factura.serie}`, 400, 108, { align: 'right', width: 145 })
+        .text(`Sèrie: ${factura.serie}`, 400, 108, { align: 'right', width: 145 })
 
       doc.moveTo(50, 125).lineTo(545, 125).stroke('#e2e8f0')
 
@@ -136,7 +136,7 @@ export class FacturasService {
       const tableTop = 215
       const colX = [50, 280, 350, 430, 480]
       doc.fontSize(9).font('Helvetica-Bold').fillColor('#64748b')
-        .text('Descripci\u00f3', colX[0], tableTop)
+        .text('Descripció', colX[0], tableTop)
         .text('Quantitat', colX[1], tableTop, { width: 60, align: 'right' })
         .text('Preu unit.', colX[2], tableTop, { width: 70, align: 'right' })
         .text('IVA', colX[3], tableTop, { width: 40, align: 'right' })

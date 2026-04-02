@@ -129,7 +129,7 @@ export class ComparisonsService {
     if (!comp) throw new Error('Comparison not found')
 
     const results = (comp.results as unknown as ComparisonResult[]) ?? []
-    const fmtMoney = (n: number) => `${n.toFixed(2)} \u20ac`
+    const fmtMoney = (n: number) => `${n.toFixed(2)} €`
 
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({ size: 'A4', margin: 50 })
@@ -139,9 +139,9 @@ export class ComparisonsService {
       doc.on('error', reject)
 
       // Header
-      doc.fontSize(18).font('Helvetica-Bold').text('Comparativa Energ\u00e8tica', 50, 50)
+      doc.fontSize(18).font('Helvetica-Bold').text('Comparativa Energètica', 50, 50)
       doc.fontSize(10).font('Helvetica').fillColor('#64748b')
-        .text(`Assessoria 3.0 \u2014 ${new Date().toLocaleDateString('ca-ES')}`, 50, 75)
+        .text(`Assessoria 3.0 — ${new Date().toLocaleDateString('ca-ES')}`, 50, 75)
 
       doc.moveTo(50, 95).lineTo(545, 95).stroke('#e2e8f0')
 
@@ -194,14 +194,14 @@ export class ComparisonsService {
         doc.moveTo(50, y).lineTo(545, y).stroke('#1e293b')
         y += 12
         doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534')
-          .text(`Millor opci\u00f3: ${results[0].company} - ${results[0].tariffType}`, 50, y)
+          .text(`Millor opció: ${results[0].company} - ${results[0].tariffType}`, 50, y)
         y += 16
         doc.fontSize(10)
           .text(`Estalvi anual: ${fmtMoney(results[0].savingsEur)} (${results[0].savingsPct}%)`, 50, y)
       }
 
       doc.fontSize(8).font('Helvetica').fillColor('#94a3b8')
-        .text('Document generat autom\u00e0ticament per Assessoria 3.0', 50, 770, { align: 'center', width: 495 })
+        .text('Document generat automàticament per Assessoria 3.0', 50, 770, { align: 'center', width: 495 })
 
       doc.end()
     })
