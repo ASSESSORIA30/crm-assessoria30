@@ -9,6 +9,7 @@ import { Zap, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 const schema = z.object({
   email:    z.string().email('Email no vàlid'),
@@ -45,11 +46,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center mb-4 shadow-xl shadow-blue-500/30">
-            <Zap className="w-7 h-7 text-white" />
-          </div>
+          <Image src="/logo.svg" alt="Assessoria 3.0" width={120} height={120} className="mb-4 drop-shadow-2xl" priority />
           <h1 className="text-2xl font-bold text-white">Assessoria 3.0</h1>
-          <p className="text-slate-400 text-sm mt-1">CRM Energètic</p>
+          <p className="text-slate-400 text-sm mt-1 italic">best CRM ever</p>
         </div>
 
         {/* Card */}

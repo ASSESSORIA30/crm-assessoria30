@@ -1,6 +1,7 @@
 // apps/web/src/components/layout/sidebar.tsx
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Users, Zap, Target, BarChart2, TrendingUp,
@@ -37,13 +38,11 @@ export function Sidebar() {
 
   return (
     <aside className="w-60 flex-shrink-0 bg-[#0f172a] flex flex-col h-full">
-      <div className="px-5 py-5 border-b border-white/10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
+      <div className="px-5 py-4 border-b border-white/10">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Image src="/logo.svg" alt="Assessoria 3.0" width={32} height={32} className="flex-shrink-0" />
           <span className="text-white font-semibold text-sm tracking-tight">Assessoria 3.0</span>
-        </div>
+        </Link>
       </div>
       <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
         {NAV.filter(item => !item.roles || item.roles.includes(user?.role ?? '')).map(item => {
