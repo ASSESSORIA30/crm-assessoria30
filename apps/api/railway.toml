@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile && npx prisma generate --schema=./prisma/schema.prisma && npx nest build"
+buildCommand = "npx prisma generate --schema=./prisma/schema.prisma && npx nest build"
 
 [deploy]
 startCommand = "node dist/main.js"
