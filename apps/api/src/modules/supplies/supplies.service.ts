@@ -33,17 +33,26 @@ export class SuppliesService {
         orderBy: { opportunityScore: 'desc' },
         select: {
           id: true, cups: true, type: true, status: true,
-          currentSupplier: true, tariff: true,
+          currentSupplier: true, tariff: true, product: true,
           contractEndDate: true, permanenceEndDate: true,
           opportunityScore: true, opportunityCategory: true,
           annualConsumption: true,
+          comissioMaster: true, comissioAgent: true,
           client: { select: { id: true, name: true } },
           agent:  { select: { id: true, name: true } },
         },
       }),
       this.prisma.supply.count({ where }),
     ])
-    return { data, total, page, limit }
+    const isAdmin = user.role === 'admin' || user.role === 'direction'
+    const filtered = data.map((s: any) => {
+      if (!isAdmin) {
+        const { comissioMaster, ...rest } = s
+        return rest
+      }
+      return s
+    })
+    return { data: filtered, total, page, limit }
   }
 
   async findOne(user: any, id: string) {

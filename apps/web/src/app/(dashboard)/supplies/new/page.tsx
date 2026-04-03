@@ -6,6 +6,7 @@ import { suppliesApi, clientsApi, productsApi, api } from '@/lib/api'
 import { toast } from 'sonner'
 import { Loader2, ArrowLeft, Zap, Flame, Wifi, Shield, Heart, Plus, Trash2, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/auth.store'
 
 const TYPES = [
   { id: 'electric', label: 'Llum', icon: Zap, color: 'amber' },
@@ -36,6 +37,8 @@ interface TelecomLine {
 
 export default function NewSupplyPage() {
   const router = useRouter()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'admin' || user?.role === 'direction'
   const [type, setType] = useState<string>('')
   const [clientId, setClientId] = useState('')
   const [cups, setCups] = useState('')
@@ -54,7 +57,9 @@ export default function NewSupplyPage() {
   const [telecomLines, setTelecomLines] = useState<TelecomLine[]>([])
   // Insurance
   const [insuranceType, setInsuranceType] = useState('')
-  const [commissionManual, setCommissionManual] = useState('')
+  // Commissions
+  const [comissioMaster, setComissioMaster] = useState('')
+  const [comissioAgent, setComissioAgent] = useState('')
 
   const { data: clientsRes } = useQuery({
     queryKey: ['clients-for-supply'],
@@ -137,7 +142,8 @@ export default function NewSupplyPage() {
       bateriaVirtual,
       telecomLines: telecomLines.length > 0 ? telecomLines : undefined,
       insuranceType: insuranceType || undefined,
-      commissionManual: commissionManual ? Number(commissionManual) : undefined,
+      comissioMaster: comissioMaster ? Number(comissioMaster) : undefined,
+      comissioAgent: comissioAgent ? Number(comissioAgent) : undefined,
     }
 
     createMut.mutate(data)
@@ -328,29 +334,54 @@ export default function NewSupplyPage() {
                   </select>
                 </div>
               </div>
-              <div><label className="text-xs font-medium text-gray-500 mb-1 block">Comissió (€)</label>
-                <input type="number" step="0.01" value={commissionManual} onChange={e => setCommissionManual(e.target.value)}
-                  placeholder="Introdueix manualment" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" />
-              </div>
             </div>
           )}
 
-          {/* Commission display + Submit */}
-          <div className="border-t border-gray-200 pt-4">
-            {type === 'insurance' && commissionManual && (
-              <p className="text-sm text-green-700 font-medium mb-3">Comissió: {Number(commissionManual).toFixed(2)} €</p>
-            )}
-            <div className="flex gap-2">
-              <button onClick={handleSubmit} disabled={createMut.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-                {createMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                Crear subministrament
-              </button>
-              <button onClick={() => router.back()}
-                className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-                Cancel·lar
-              </button>
+          {/* === COMMISSIONS (all types) === */}
+          <div className="border-t border-gray-200 pt-4 space-y-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Comissions</p>
+            <div className={cn('grid gap-4', isAdmin ? 'grid-cols-2' : 'grid-cols-1')}>
+              {isAdmin && (
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">Comissió A3.0 (€)</label>
+                  <input type="number" step="0.01" value={comissioMaster} onChange={e => setComissioMaster(e.target.value)}
+                    placeholder="Import que paga la companyia" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" />
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">
+                  {isAdmin ? `Comissió agent (€)` : 'Comissió (€)'}
+                </label>
+                <input type="number" step="0.01" value={comissioAgent} onChange={e => setComissioAgent(e.target.value)}
+                  placeholder={isAdmin ? "Import que rep l'agent" : 'Import comissió'}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 text-right" />
+              </div>
             </div>
+            {(comissioMaster || comissioAgent) && (
+              <div className="flex gap-4 text-sm">
+                {isAdmin && comissioMaster && (
+                  <span className="text-blue-700 font-medium">Comissió A3.0: {Number(comissioMaster).toFixed(2)} €</span>
+                )}
+                {comissioAgent && (
+                  <span className="text-green-700 font-medium">
+                    {isAdmin ? `Comissió agent: ` : 'Comissió: '}{Number(comissioAgent).toFixed(2)} €
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Submit */}
+          <div className="flex gap-2">
+            <button onClick={handleSubmit} disabled={createMut.isPending}
+              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              {createMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Crear subministrament
+            </button>
+            <button onClick={() => router.back()}
+              className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+              Cancel·lar
+            </button>
           </div>
         </div>
       )}

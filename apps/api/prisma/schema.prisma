@@ -163,9 +163,9 @@ model Supply {
   telecomLines     Json?   @map("telecom_lines")
   // Insurance fields
   insuranceType    String? @map("insurance_type")
-  commissionManual Float?  @map("commission_manual")
-  // Computed commission
-  commissionCalc   Float?  @map("commission_calc")
+  // Commissions (dual level)
+  comissioMaster   Float?  @map("comissio_master")
+  comissioAgent    Float?  @map("comissio_agent")
   addressStreet   String? @map("address_street")
   addressCity     String? @map("address_city")
   addressProvince String? @map("address_province")
