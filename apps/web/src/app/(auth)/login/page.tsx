@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <Image src="/logo.svg" alt="Assessoria 3.0" width={120} height={120} className="mb-4 drop-shadow-2xl" priority />
+          <Image src="/logo.png" alt="Assessoria 3.0" width={120} height={120} className="mb-4 drop-shadow-2xl" priority />
           <h1 className="text-2xl font-bold text-white">Assessoria 3.0</h1>
           <p className="text-slate-400 text-sm mt-1 italic">best CRM ever</p>
         </div>

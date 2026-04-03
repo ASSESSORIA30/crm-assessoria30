@@ -45,8 +45,9 @@ export class ProductsController {
   }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
   async upload(@UploadedFile() file: any, @CurrentUser() user: any) {
+    if (!file) throw new Error('No file uploaded')
     const content = this.productsService.buildContent(file)
     const extracted = await this.productsService.analyzeWithAI(content)
 

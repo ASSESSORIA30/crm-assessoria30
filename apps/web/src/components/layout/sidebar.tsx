@@ -40,7 +40,7 @@ export function Sidebar() {
     <aside className="w-60 flex-shrink-0 bg-[#0f172a] flex flex-col h-full">
       <div className="px-5 py-4 border-b border-white/10">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <Image src="/logo.svg" alt="Assessoria 3.0" width={32} height={32} className="flex-shrink-0" />
+          <Image src="/logo.png" alt="Assessoria 3.0" width={32} height={32} className="flex-shrink-0" />
           <span className="text-white font-semibold text-sm tracking-tight">Assessoria 3.0</span>
         </Link>
       </div>
