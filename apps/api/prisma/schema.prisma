@@ -29,6 +29,9 @@ enum ClientStatus {
 enum SupplyType {
   electric
   gas
+  telecom
+  alarm
+  insurance
 }
 
 enum SupplyStatus {
@@ -140,17 +143,29 @@ model Client {
 model Supply {
   id              String       @id @default(uuid())
   clientId        String       @map("client_id")
-  cups            String       @unique
+  cups            String?      @unique
   type            SupplyType
   status          SupplyStatus @default(active)
   assignedTo      String?      @map("assigned_to")
   currentSupplier String? @map("current_supplier")
   tariff          String?
-  distributor     String?
+  product         String?
   powerP1 Float? @map("power_p1")
   powerP2 Float? @map("power_p2")
   powerP3 Float? @map("power_p3")
   annualConsumption Float? @map("annual_consumption")
+  // Management type flags
+  altaNova         Boolean @default(false) @map("alta_nova")
+  canviPotencia    Boolean @default(false) @map("canvi_potencia")
+  canviNom         Boolean @default(false) @map("canvi_nom")
+  bateriaVirtual   Boolean @default(false) @map("bateria_virtual")
+  // Telecom fields
+  telecomLines     Json?   @map("telecom_lines")
+  // Insurance fields
+  insuranceType    String? @map("insurance_type")
+  commissionManual Float?  @map("commission_manual")
+  // Computed commission
+  commissionCalc   Float?  @map("commission_calc")
   addressStreet   String? @map("address_street")
   addressCity     String? @map("address_city")
   addressProvince String? @map("address_province")
