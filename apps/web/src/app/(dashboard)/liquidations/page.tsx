@@ -142,7 +142,7 @@ export default function LiquidationsPage() {
             </button>
             <button onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-              Cancel\u00b7lar
+              Cancel·lar
             </button>
           </div>
         </div>
