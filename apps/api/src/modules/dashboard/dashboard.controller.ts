@@ -9,12 +9,12 @@ export class DashboardController {
 
   @Get('stats')
   async stats() {
-    const [byServiceType, bySupplier, byAgent] = await Promise.all([
-      // Contracts per tariff type (serviceType from opportunities)
-      this.prisma.opportunity.groupBy({
-        by: ['serviceType'],
+    const [byTariff, bySupplier, byAgent] = await Promise.all([
+      // Contracts per tariff name (2.0TD, 3.0TD, RL1, etc.)
+      this.prisma.supply.groupBy({
+        by: ['tariff'],
         _count: { id: true },
-        where: { stage: { notIn: ['lost'] } },
+        where: { status: 'active', tariff: { not: null } },
       }),
 
       // Contracts per company (currentSupplier from supplies)
@@ -47,10 +47,13 @@ export class DashboardController {
     const agentMap = new Map(agents.map(a => [a.id, a.name]))
 
     return {
-      byServiceType: byServiceType.map(r => ({
-        type: r.serviceType,
-        count: r._count.id,
-      })),
+      byTariff: byTariff
+        .map(r => ({
+          tariff: r.tariff ?? 'Sense tarifa',
+          count: r._count.id,
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10),
       byCompany: bySupplier
         .map(r => ({
           company: r.currentSupplier ?? 'Sense companyia',
