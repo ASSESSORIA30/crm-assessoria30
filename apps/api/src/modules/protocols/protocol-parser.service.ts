@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import * as pdfParse from 'pdf-parse'
+// pdf-parse v1 has a CommonJS export that needs interop
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-parse')
 
 const PROTOCOL_PROMPT = [
   'You are an expert in commission protocols from energy and telecom providers.',
