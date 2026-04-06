@@ -18,6 +18,7 @@ import { MarketModule } from './modules/market/market.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { ComparisonsModule } from './modules/comparisons/comparisons.module'
 import { StatsModule } from './modules/stats/stats.module'
+import { HealthModule } from './modules/health/health.module'
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { StatsModule } from './modules/stats/stats.module'
     DashboardModule,
     ComparisonsModule,
     StatsModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
