@@ -13,12 +13,34 @@ export class ProductsController {
     private productsService: ProductsService,
   ) {}
 
+  // Static routes first
   @Get('companies')
   async companies() {
     return this.prisma.company.findMany({
       orderBy: { nombre: 'asc' },
       include: { _count: { select: { tarifes: true } } },
     })
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
+  async upload(@UploadedFile() file: any, @CurrentUser() user: any) {
+    if (!file) {
+      throw new Error('No s\'ha rebut cap fitxer. Camp esperat: "file" (multipart/form-data)')
+    }
+
+    const mimetype = file.mimetype ?? ''
+    const filename = (file.originalname ?? '').toLowerCase()
+    const isExcel = mimetype.includes('spreadsheet')
+      || mimetype.includes('excel')
+      || filename.endsWith('.xlsx')
+      || filename.endsWith('.xls')
+
+    if (!isExcel) {
+      throw new Error(`Només es permeten fitxers Excel (.xlsx, .xls). Rebut: ${mimetype} - ${filename}`)
+    }
+
+    return this.productsService.importFromExcel(file.buffer, file.originalname, user.id)
   }
 
   @Get()
@@ -33,6 +55,7 @@ export class ProductsController {
     })
   }
 
+  // Dynamic routes last
   @Patch(':id')
   async update(@Param('id') id: string, @Body() body: any) {
     const data: any = {}
@@ -42,23 +65,5 @@ export class ProductsController {
     if (body.condicions !== undefined) data.condicions = body.condicions
     if (body.activa !== undefined) data.activa = body.activa
     return this.prisma.tarifa.update({ where: { id }, data })
-  }
-
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
-  async upload(@UploadedFile() file: any, @CurrentUser() user: any) {
-    if (!file) throw new Error('No file uploaded')
-
-    const mimetype = file.mimetype ?? ''
-    const isExcel = mimetype.includes('spreadsheet')
-      || mimetype.includes('excel')
-      || file.originalname?.toLowerCase().endsWith('.xlsx')
-      || file.originalname?.toLowerCase().endsWith('.xls')
-
-    if (!isExcel) {
-      throw new Error('Només es permeten fitxers Excel (.xlsx, .xls)')
-    }
-
-    return this.productsService.importFromExcel(file.buffer, file.originalname, user.id)
   }
 }
