@@ -15,8 +15,8 @@ export class UsersService {
       where,
       select: {
         id: true, name: true, email: true, role: true,
-        treeLevel: true, phone: true,
-        commissionPct: true, monthlyTarget: true,
+        treeLevel: true, phone: true, parentUserId: true,
+        commissionPct: true, subagentPct: true, monthlyTarget: true,
       },
       orderBy: [{ treeLevel: 'asc' }, { name: 'asc' }],
     })

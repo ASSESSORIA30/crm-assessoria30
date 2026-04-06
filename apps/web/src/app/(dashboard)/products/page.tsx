@@ -41,11 +41,21 @@ export default function ProductsPage() {
     setUploading(true)
     try {
       const res = await productsApi.upload(file)
-      toast.success(`${res.tarifes.length} tarifes extretes`)
+      const parts = []
+      if (res.imported > 0) parts.push(`${res.imported} importats`)
+      if (res.updated > 0) parts.push(`${res.updated} actualitzats`)
+      if (res.errors > 0) parts.push(`${res.errors} errors`)
+      const msg = parts.length > 0 ? parts.join(' · ') : 'Cap producte processat'
+      if (res.errors > 0) {
+        toast.warning(msg)
+        if (res.errorList?.length) console.warn('Errors:', res.errorList)
+      } else {
+        toast.success(msg)
+      }
       qc.invalidateQueries({ queryKey: ['products'] })
       qc.invalidateQueries({ queryKey: ['companies'] })
-    } catch {
-      toast.error('Error processant el fitxer')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? 'Error processant el fitxer')
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ''

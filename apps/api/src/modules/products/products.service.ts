@@ -1,81 +1,174 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import * as XLSX from 'xlsx'
+import { PrismaService } from '../../prisma/prisma.service'
 
-const PRODUCT_PROMPT = [
-  'You are an expert in energy and gas tariffs.',
-  'Analyze this document and extract ALL tariffs/products found.',
-  'Return ONLY a JSON array (no markdown, no explanation) with this structure:',
-  '[{',
-  '  "companyia": "company/provider name",',
-  '  "nom_tarifa": "tariff/product name",',
-  '  "tipus": "llum or gas",',
-  '  "preu_kwh": number or null,',
-  '  "preu_kw": number or null,',
-  '  "peatge": number or null,',
-  '  "condicions": "conditions text or null"',
-  '}]',
-  'IMPORTANT: Create one entry per tariff/product. Extract ALL found in the document.',
-  'For preu_kwh, preu_kw and peatge use numeric values (e.g. 0.12) not strings.',
-].join('\n')
+interface ParsedRow {
+  company: string
+  serviceType: string
+  tariffType: string
+  productName: string
+  gasPriceFixed?: number
+  gasPriceVar?: number
+  powerP1?: number; powerP2?: number; powerP3?: number
+  powerP4?: number; powerP5?: number; powerP6?: number
+  energyP1?: number; energyP2?: number; energyP3?: number
+  energyP4?: number; energyP5?: number; energyP6?: number
+  residential?: boolean
+  pyme?: boolean
+  excedentes?: string
+  priceType?: string
+  feePowerSingle?: number; feePowerMin?: number; feePowerMax?: number
+  feeEnergySingle?: number; feeEnergyMin?: number; feeEnergyMax?: number
+  avgPriceMonth?: number
+  gasDualTariff?: string
+  gasDualProduct?: string
+}
 
 @Injectable()
 export class ProductsService {
-  extractTextFromExcel(buffer: Buffer): string {
+  private readonly logger = new Logger(ProductsService.name)
+
+  /**
+   * Parse the official Plantilla_comercializadoras.xlsx template.
+   * Sheet "Productos", row 1 = instructions, row 2 = headers, data starts at row 3.
+   */
+  parseTemplateExcel(buffer: Buffer): ParsedRow[] {
     const wb = XLSX.read(buffer, { type: 'buffer' })
-    const lines: string[] = []
-    for (const name of wb.SheetNames) {
-      const sheet = wb.Sheets[name]
-      const csv = XLSX.utils.sheet_to_csv(sheet)
-      lines.push(`--- Sheet: ${name} ---`, csv)
+    const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('producto')) ?? wb.SheetNames[0]
+    const sheet = wb.Sheets[sheetName]
+    if (!sheet) return []
+
+    // Read as array of arrays starting from row 3 (index 2)
+    const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: false })
+
+    // Skip first 2 rows (instructions + headers)
+    const dataRows = rows.slice(2)
+
+    const parsed: ParsedRow[] = []
+
+    const num = (v: any): number | undefined => {
+      if (v == null || v === '') return undefined
+      const n = Number(String(v).replace(',', '.').replace(/[^\d.-]/g, ''))
+      return isNaN(n) ? undefined : n
     }
-    return lines.join('\n')
+
+    const bool = (v: any): boolean | undefined => {
+      if (v == null || v === '') return undefined
+      const s = String(v).toLowerCase().trim()
+      if (['si', 'sí', 'yes', 'true', '1', 'x'].includes(s)) return true
+      if (['no', 'false', '0'].includes(s)) return false
+      return undefined
+    }
+
+    for (const row of dataRows) {
+      // Skip empty rows
+      if (!row || row.every((c: any) => c == null || c === '')) continue
+
+      const company = String(row[0] ?? '').trim()
+      const productName = String(row[3] ?? '').trim()
+
+      // Required fields
+      if (!company || !productName) continue
+
+      parsed.push({
+        company,
+        serviceType: String(row[1] ?? '').trim(),
+        tariffType: String(row[2] ?? '').trim(),
+        productName,
+        gasPriceFixed: num(row[4]),
+        gasPriceVar: num(row[5]),
+        powerP1: num(row[6]), powerP2: num(row[7]), powerP3: num(row[8]),
+        powerP4: num(row[9]), powerP5: num(row[10]), powerP6: num(row[11]),
+        energyP1: num(row[12]), energyP2: num(row[13]), energyP3: num(row[14]),
+        energyP4: num(row[15]), energyP5: num(row[16]), energyP6: num(row[17]),
+        residential: bool(row[18]),
+        pyme: bool(row[19]),
+        excedentes: row[20] ? String(row[20]).trim() : undefined,
+        priceType: row[21] ? String(row[21]).trim() : undefined,
+        feePowerSingle: num(row[22]), feePowerMin: num(row[23]), feePowerMax: num(row[24]),
+        feeEnergySingle: num(row[25]), feeEnergyMin: num(row[26]), feeEnergyMax: num(row[27]),
+        avgPriceMonth: num(row[28]),
+        gasDualTariff: row[29] ? String(row[29]).trim() : undefined,
+        gasDualProduct: row[30] ? String(row[30]).trim() : undefined,
+      })
+    }
+
+    return parsed
   }
 
-  async analyzeWithAI(content: any[]): Promise<any[]> {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
-        messages: [{ role: 'user', content }],
-      }),
-    })
+  constructor(private prisma: PrismaService) {}
 
-    const data = await response.json()
-    const raw = data.content?.[0]?.text ?? '[]'
+  async importFromExcel(buffer: Buffer, fileName: string, userId?: string) {
+    const rows = this.parseTemplateExcel(buffer)
+    let imported = 0
+    let updated = 0
+    let errors = 0
+    const errorList: string[] = []
 
-    try {
-      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim())
-      return Array.isArray(parsed) ? parsed : [parsed]
-    } catch {
-      return []
+    for (const row of rows) {
+      try {
+        // Upsert company in the products module too
+        await this.prisma.company.upsert({
+          where: { nombre: row.company },
+          update: {},
+          create: { nombre: row.company },
+        })
+
+        // Upsert tariff by company + productName
+        const existing = await this.prisma.tariff.findFirst({
+          where: { company: row.company, productName: row.productName },
+        })
+
+        const data = {
+          company: row.company,
+          tariffType: row.tariffType || null,
+          productName: row.productName,
+          serviceType: row.serviceType || null,
+          gasPriceFixed: row.gasPriceFixed ?? null,
+          gasPriceVar: row.gasPriceVar ?? null,
+          powerPriceP1: row.powerP1 ?? null,
+          powerPriceP2: row.powerP2 ?? null,
+          powerPriceP3: row.powerP3 ?? null,
+          powerPriceP4: row.powerP4 ?? null,
+          powerPriceP5: row.powerP5 ?? null,
+          powerPriceP6: row.powerP6 ?? null,
+          energyPriceP1: row.energyP1 ?? null,
+          energyPriceP2: row.energyP2 ?? null,
+          energyPriceP3: row.energyP3 ?? null,
+          energyPriceP4: row.energyP4 ?? null,
+          energyPriceP5: row.energyP5 ?? null,
+          energyPriceP6: row.energyP6 ?? null,
+          residential: row.residential ?? null,
+          pyme: row.pyme ?? null,
+          excedentes: row.excedentes ?? null,
+          priceType: row.priceType ?? null,
+          feePowerSingle: row.feePowerSingle ?? null,
+          feePowerMin: row.feePowerMin ?? null,
+          feePowerMax: row.feePowerMax ?? null,
+          feeEnergySingle: row.feeEnergySingle ?? null,
+          feeEnergyMin: row.feeEnergyMin ?? null,
+          feeEnergyMax: row.feeEnergyMax ?? null,
+          avgPriceMonth: row.avgPriceMonth ?? null,
+          gasDualTariff: row.gasDualTariff ?? null,
+          gasDualProduct: row.gasDualProduct ?? null,
+          fileName,
+          createdBy: userId ?? null,
+        }
+
+        if (existing) {
+          await this.prisma.tariff.update({ where: { id: existing.id }, data })
+          updated++
+        } else {
+          await this.prisma.tariff.create({ data })
+          imported++
+        }
+      } catch (err: any) {
+        errors++
+        errorList.push(`${row.company} - ${row.productName}: ${err.message}`)
+        this.logger.error(`Error importing ${row.company} - ${row.productName}: ${err.message}`)
+      }
     }
-  }
 
-  buildContent(file: any, text?: string): any[] {
-    const mediaType = file.mimetype
-    const isExcel = mediaType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      || mediaType === 'application/vnd.ms-excel'
-
-    if (isExcel) {
-      const excelText = this.extractTextFromExcel(file.buffer)
-      return [{ type: 'text', text: `${PRODUCT_PROMPT}\n\n--- DOCUMENT ---\n${excelText}` }]
-    }
-
-    const isPdf = mediaType === 'application/pdf'
-    const base64 = file.buffer.toString('base64')
-
-    return [
-      {
-        type: isPdf ? 'document' : 'image',
-        source: { type: 'base64', media_type: mediaType, data: base64 },
-      },
-      { type: 'text', text: PRODUCT_PROMPT },
-    ]
+    return { imported, updated, errors, total: rows.length, errorList: errorList.slice(0, 10) }
   }
 }

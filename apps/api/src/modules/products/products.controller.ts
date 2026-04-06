@@ -48,30 +48,17 @@ export class ProductsController {
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
   async upload(@UploadedFile() file: any, @CurrentUser() user: any) {
     if (!file) throw new Error('No file uploaded')
-    const content = this.productsService.buildContent(file)
-    const extracted = await this.productsService.analyzeWithAI(content)
 
-    const saved = await Promise.all(extracted.map(async (t: any) => {
-      const companyName = (t.companyia ?? t.company ?? 'Desconeguda').trim()
-      const company = await this.prisma.company.upsert({
-        where: { nombre: companyName },
-        update: {},
-        create: { nombre: companyName },
-      })
-      return this.prisma.tarifa.create({
-        data: {
-          companyId: company.id,
-          nombre: t.nom_tarifa ?? t.nombre ?? null,
-          tipus: t.tipus ?? null,
-          preuKwh: t.preu_kwh != null ? Number(t.preu_kwh) : null,
-          preuKw: t.preu_kw != null ? Number(t.preu_kw) : null,
-          peatge: t.peatge != null ? Number(t.peatge) : null,
-          condicions: t.condicions ?? null,
-        },
-        include: { company: { select: { nombre: true } } },
-      })
-    }))
+    const mimetype = file.mimetype ?? ''
+    const isExcel = mimetype.includes('spreadsheet')
+      || mimetype.includes('excel')
+      || file.originalname?.toLowerCase().endsWith('.xlsx')
+      || file.originalname?.toLowerCase().endsWith('.xls')
 
-    return { tarifes: saved, extracted }
+    if (!isExcel) {
+      throw new Error('Només es permeten fitxers Excel (.xlsx, .xls)')
+    }
+
+    return this.productsService.importFromExcel(file.buffer, file.originalname, user.id)
   }
 }

@@ -57,14 +57,8 @@ export class TariffSyncService {
           if (!part.filename || !part.body?.attachmentId) continue
 
           const ext = part.filename.toLowerCase()
-          const isSupported =
-            ext.endsWith('.pdf') ||
-            ext.endsWith('.xlsx') ||
-            ext.endsWith('.xls') ||
-            ext.endsWith('.jpg') ||
-            ext.endsWith('.jpeg') ||
-            ext.endsWith('.png')
-          if (!isSupported) continue
+          const isExcel = ext.endsWith('.xlsx') || ext.endsWith('.xls')
+          if (!isExcel) continue
 
           const attachment = await gmail.users.messages.attachments.get({
             userId: 'me',
@@ -73,41 +67,9 @@ export class TariffSyncService {
           })
 
           const buffer = Buffer.from(attachment.data.data!, 'base64')
-          const mimetype = part.mimeType ?? 'application/octet-stream'
 
-          const fakeFile = {
-            buffer,
-            mimetype,
-            originalname: part.filename,
-          }
-
-          const content = this.products.buildContent(fakeFile)
-          const extracted = await this.products.analyzeWithAI(content)
-
-          for (const t of extracted) {
-            const companyName = (t.companyia ?? t.company ?? 'Desconeguda').trim()
-            const company = await this.prisma.company.upsert({
-              where: { nombre: companyName },
-              update: {},
-              create: { nombre: companyName },
-            })
-
-            const tarifa = await this.prisma.tarifa.create({
-              data: {
-                companyId: company.id,
-                nombre: t.nom_tarifa ?? t.nombre ?? null,
-                tipus: t.tipus ?? null,
-                preuKwh: t.preu_kwh != null ? Number(t.preu_kwh) : null,
-                preuKw: t.preu_kw != null ? Number(t.preu_kw) : null,
-                peatge: t.peatge != null ? Number(t.peatge) : null,
-                condicions: t.condicions ?? null,
-              },
-            })
-
-            const opps = await this.oportunitats.detectOpportunities(tarifa.id)
-            totalOpportunities += opps.length
-            totalTarifes++
-          }
+          const result = await this.products.importFromExcel(buffer, part.filename, undefined)
+          totalTarifes += result.imported + result.updated
         }
 
         // Mark as read

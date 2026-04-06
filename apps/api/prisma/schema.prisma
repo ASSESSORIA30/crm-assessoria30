@@ -89,6 +89,7 @@ model User {
   treePath     String   @default("") @map("tree_path")
   treeLevel    Int      @default(0) @map("tree_level")
   commissionPct Float? @map("commission_pct") @default(25)
+  subagentPct   Float? @map("subagent_pct") @default(70)
   monthlyTarget Int?   @map("monthly_target")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -99,6 +100,7 @@ model User {
   assignedOpportunities Opportunity[] @relation("AgentOpportunities")
   activities           Activity[]
   refreshTokens        RefreshToken[]
+  supplyCommissions    SupplyCommission[]
   @@map("users")
 }
 
@@ -180,9 +182,25 @@ model Supply {
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")
   client        Client        @relation(fields: [clientId], references: [id])
-  agent         User?         @relation("AgentSupplies", fields: [assignedTo], references: [id])
-  opportunities Opportunity[]
+  agent              User?              @relation("AgentSupplies", fields: [assignedTo], references: [id])
+  opportunities      Opportunity[]
+  supplyCommissions  SupplyCommission[]
   @@map("supplies")
+}
+
+model SupplyCommission {
+  id         String @id @default(uuid())
+  supplyId   String @map("supply_id")
+  agentId    String @map("agent_id")
+  nivel      Int
+  comissio   Float
+  percentatge Float
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  supply Supply @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+  agent  User   @relation(fields: [agentId], references: [id])
+
+  @@map("supply_commissions")
 }
 
 model Opportunity {
@@ -241,6 +259,8 @@ model Tariff {
   id              String    @id @default(uuid())
   company         String?
   tariffType      String?   @map("tariff_type")
+  productName     String?   @map("product_name")
+  serviceType     String?   @map("service_type")
   validFrom       DateTime? @map("valid_from") @db.Date
   validUntil      DateTime? @map("valid_until") @db.Date
   energyPriceP1   Float?    @map("energy_price_p1")
@@ -255,6 +275,21 @@ model Tariff {
   powerPriceP4    Float?    @map("power_price_p4")
   powerPriceP5    Float?    @map("power_price_p5")
   powerPriceP6    Float?    @map("power_price_p6")
+  gasPriceFixed   Float?    @map("gas_price_fixed")
+  gasPriceVar     Float?    @map("gas_price_var")
+  residential     Boolean?
+  pyme            Boolean?
+  excedentes      String?
+  priceType       String?   @map("price_type")
+  feePowerSingle  Float?    @map("fee_power_single")
+  feePowerMin     Float?    @map("fee_power_min")
+  feePowerMax     Float?    @map("fee_power_max")
+  feeEnergySingle Float?    @map("fee_energy_single")
+  feeEnergyMin    Float?    @map("fee_energy_min")
+  feeEnergyMax    Float?    @map("fee_energy_max")
+  avgPriceMonth   Float?    @map("avg_price_month")
+  gasDualTariff   String?   @map("gas_dual_tariff")
+  gasDualProduct  String?   @map("gas_dual_product")
   commissionKwh   Float?    @map("commission_kwh")
   commissionPower Float?    @map("commission_power")
   bonus           String?
@@ -264,6 +299,9 @@ model Tariff {
   fileName        String?   @map("file_name")
   createdBy       String?   @map("created_by")
   createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([company, productName])
   @@map("tariffs")
 }
 
