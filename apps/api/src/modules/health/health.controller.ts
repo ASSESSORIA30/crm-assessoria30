@@ -1,13 +1,23 @@
 import { Controller, Get } from '@nestjs/common'
 
-@Controller('health')
+@Controller()
 export class HealthController {
-  @Get()
-  check() {
+  @Get('health')
+  health() {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+    }
+  }
+
+  @Get('/')
+  root() {
+    return {
+      name: 'CRM Assessoria 3.0 API',
+      status: 'running',
+      health: '/health',
+      api: '/api/v1',
     }
   }
 }

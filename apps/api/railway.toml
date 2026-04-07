@@ -4,6 +4,6 @@ buildCommand = "npx prisma generate --schema=./prisma/schema.prisma && npx nest 
 
 [deploy]
 startCommand = "node dist/src/main.js"
-healthcheckPath = "/api/v1/health"
+healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
