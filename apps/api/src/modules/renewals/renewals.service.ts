@@ -4,13 +4,20 @@ import Mailjet from 'node-mailjet'
 
 @Injectable()
 export class RenewalsService {
-  private mailjet: ReturnType<typeof Mailjet.apiConnect>
+  private _mailjet: ReturnType<typeof Mailjet.apiConnect> | null = null
 
-  constructor(private prisma: PrismaService) {
-    this.mailjet = Mailjet.apiConnect(
-      process.env.MAILJET_API_KEY ?? '',
-      process.env.MAILJET_SECRET_KEY ?? '',
-    )
+  constructor(private prisma: PrismaService) {}
+
+  private get mailjet() {
+    if (!this._mailjet) {
+      const key = process.env.MAILJET_API_KEY
+      const secret = process.env.MAILJET_SECRET_KEY
+      if (!key || !secret) {
+        throw new Error('MAILJET_API_KEY and MAILJET_SECRET_KEY must be configured')
+      }
+      this._mailjet = Mailjet.apiConnect(key, secret)
+    }
+    return this._mailjet
   }
 
   async getUpcoming(days = 7) {

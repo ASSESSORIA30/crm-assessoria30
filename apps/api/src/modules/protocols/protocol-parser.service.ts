@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common'
-// pdf-parse v1 has a CommonJS export that needs interop
+// pdf-parse v1.1.0 has a bug: requiring it at top level tries to open a test
+// PDF file relative to CWD and crashes if not found. Use lazy require inside
+// the function to defer loading until actually needed.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-parse')
+const pdfParse = (buffer: Buffer): Promise<{ text: string }> => require('pdf-parse/lib/pdf-parse.js')(buffer)
 
 const PROTOCOL_PROMPT = [
   'You are an expert in commission protocols from energy and telecom providers.',
