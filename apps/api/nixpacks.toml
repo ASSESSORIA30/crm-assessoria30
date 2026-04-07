@@ -2,4 +2,4 @@
 cmds = ["npx prisma generate --schema=./prisma/schema.prisma", "npx nest build"]
 
 [start]
-cmd = "node dist/main.js"
+cmd = "node dist/src/main.js"
