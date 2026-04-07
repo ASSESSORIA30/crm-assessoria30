@@ -19,6 +19,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { ComparisonsModule } from './modules/comparisons/comparisons.module'
 import { StatsModule } from './modules/stats/stats.module'
 import { HealthModule } from './modules/health/health.module'
+import { RgpdModule } from './modules/rgpd/rgpd.module'
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { HealthModule } from './modules/health/health.module'
     ComparisonsModule,
     StatsModule,
     HealthModule,
+    RgpdModule,
   ],
 })
 export class AppModule {}
