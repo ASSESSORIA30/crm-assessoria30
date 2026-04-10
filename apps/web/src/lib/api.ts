@@ -1,7 +1,7 @@
 // apps/web/src/lib/api.ts
 import axios, { AxiosError } from 'axios'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://crmapi-production-3816.up.railway.app'
 
 export const api = axios.create({
   baseURL: `${BASE}/api/v1`,

@@ -35,7 +35,14 @@ export default function LoginPage() {
       await login(data.email, data.password)
       router.replace('/dashboard')
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Credencials incorrectes')
+      const msg = err?.response?.data?.message
+      if (Array.isArray(msg)) {
+        toast.error(msg.join(', '))
+      } else if (err?.code === 'ERR_NETWORK') {
+        toast.error('No es pot connectar amb el servidor. Comprova la connexió.')
+      } else {
+        toast.error(msg ?? 'Credencials incorrectes')
+      }
     } finally {
       setLoading(false)
     }

@@ -7,8 +7,7 @@ import { IsEmail, IsString, MinLength } from 'class-validator'
 
 class LoginDto {
   @IsEmail()    email:    string
-  @IsString()
-  @MinLength(6) password: string
+  @IsString()   password: string
 }
 class RefreshDto { @IsString() refreshToken: string }
 
