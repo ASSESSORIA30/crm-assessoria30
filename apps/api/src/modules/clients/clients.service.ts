@@ -69,11 +69,24 @@ export class ClientsService {
     return client
   }
 
+  /** Convert empty strings to undefined so Prisma stores NULL (avoids unique constraint issues on taxId/email) */
+  private sanitize(dto: any) {
+    const optional = ['taxId', 'email', 'phone', 'source', 'notes',
+                      'addressStreet', 'addressCity', 'addressProvince', 'addressZip',
+                      'dataRenovacio', 'assignedTo']
+    const out: any = { ...dto }
+    for (const key of optional) {
+      if (out[key] === '' || out[key] === null) out[key] = undefined
+    }
+    return out
+  }
+
   async create(user: any, dto: any) {
+    const clean = this.sanitize(dto)
     return this.prisma.client.create({
       data: {
-        ...dto,
-        assignedTo: dto.assignedTo ?? user.id,
+        ...clean,
+        assignedTo: clean.assignedTo ?? user.id,
         createdBy:  user.id,
       },
     })
@@ -81,7 +94,7 @@ export class ClientsService {
 
   async update(user: any, id: string, dto: any) {
     await this.findOne(user, id)
-    return this.prisma.client.update({ where: { id }, data: dto })
+    return this.prisma.client.update({ where: { id }, data: this.sanitize(dto) })
   }
 
   async remove(user: any, id: string) {
