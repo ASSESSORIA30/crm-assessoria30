@@ -2,4 +2,4 @@
 cmds = ["npx prisma generate --schema=./prisma/schema.prisma", "npx nest build"]
 
 [start]
-cmd = "npx prisma db push --schema=./prisma/schema.prisma --skip-generate --accept-data-loss && node dist/src/main.js"
+cmd = "npx prisma db push --schema=./prisma/schema.prisma --skip-generate --accept-data-loss && npx tsx prisma/ensure-admin.ts && node dist/src/main.js"

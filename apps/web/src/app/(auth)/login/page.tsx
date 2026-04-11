@@ -106,7 +106,7 @@ export default function LoginPage() {
             <p className="text-xs text-gray-400 mb-2 font-medium">Comptes de demo:</p>
             <div className="space-y-1">
               {[
-                ['admin@assessoria30.cat',  'admin1234',  'Admin'],
+                ['admin@assessoria30.cat',  'Admin1234',  'Admin'],
                 ['juan@assessoria30.cat',   'juan1234',   'Col·laborador'],
                 ['maria@assessoria30.cat',  'maria1234',  'Comercial'],
               ].map(([email, pwd, role]) => (
