@@ -8,7 +8,7 @@ import { ClientsModule } from './modules/clients/clients.module'
 import { SuppliesModule }from './modules/supplies/supplies.module'
 import { OpportunitiesModule } from './modules/opportunities/opportunities.module'
 import { HealthModule } from './modules/health/health.module'
-// import { ProductsModule } from './modules/products/products.module'
+import { ProductsModule } from './modules/products/products.module'
 // import { OportunitatsModule } from './modules/oportunitats/oportunitats.module'
 // import { RenewalsModule } from './modules/renewals/renewals.module'
 // import { LiquidationsModule } from './modules/liquidations/liquidations.module'
@@ -30,7 +30,7 @@ import { HealthModule } from './modules/health/health.module'
     SuppliesModule,
     OpportunitiesModule,
     HealthModule,
-    // ProductsModule,
+    ProductsModule,
     // OportunitatsModule,
     // RenewalsModule,
     // LiquidationsModule,
