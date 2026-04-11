@@ -431,3 +431,18 @@ model Comparison {
   createdAt     DateTime @default(now()) @map("created_at")
   @@map("comparisons")
 }
+
+model CommissionRule {
+  id          String   @id @default(uuid())
+  type        String   // Fijo | Consumo | Potencia | Consumo y potencia
+  consumoMin  Float?   @map("consumo_min")
+  consumoMax  Float?   @map("consumo_max")
+  potenciaMin Float?   @map("potencia_min")
+  potenciaMax Float?   @map("potencia_max")
+  comision    Float
+  multiplicar Boolean  @default(false)
+  fileName    String?  @map("file_name")
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  @@map("commission_rules")
+}
