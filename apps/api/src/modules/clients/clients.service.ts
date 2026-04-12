@@ -1,10 +1,12 @@
 // apps/api/src/modules/clients/clients.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class ClientsService {
+  private readonly logger = new Logger(ClientsService.name)
+
   constructor(private prisma: PrismaService) {}
 
   private visibilityFilter(user: any): Prisma.ClientWhereInput {
@@ -46,50 +48,94 @@ export class ClientsService {
   }
 
   async findOne(user: any, id: string) {
-    const client = await this.prisma.client.findFirst({
-      where: { id, ...this.visibilityFilter(user) },
-      include: {
-        agent:    { select: { id: true, name: true } },
-        supplies: {
-          select: {
-            id: true, cups: true, type: true, currentSupplier: true,
-            tariff: true, contractEndDate: true,
-            opportunityScore: true, opportunityCategory: true,
+    let client: any
+    try {
+      client = await this.prisma.client.findFirst({
+        where: { id, ...this.visibilityFilter(user) },
+        include: {
+          agent:    { select: { id: true, name: true } },
+          supplies: {
+            select: {
+              id: true, cups: true, type: true, currentSupplier: true,
+              tariff: true, contractEndDate: true,
+              opportunityScore: true, opportunityCategory: true,
+            },
+          },
+          opportunities: {
+            where:   { stage: { notIn: ['won', 'lost'] } },
+            select:  { id: true, title: true, stage: true, estimatedValue: true },
+            orderBy: { createdAt: 'desc' },
+            take:    5,
           },
         },
-        opportunities: {
-          where:   { stage: { notIn: ['won', 'lost'] } },
-          select:  { id: true, title: true, stage: true, estimatedValue: true },
-          orderBy: { createdAt: 'desc' },
-          take:    5,
-        },
-      },
-    })
+      })
+    } catch (err: any) {
+      this.logger.error('client.findOne failed', err?.message, err?.code)
+      // If opportunityScore/opportunityCategory columns are missing, retry without them
+      if (err?.message?.includes('opportunityScore') || err?.message?.includes('opportunityCategory') ||
+          err?.message?.includes('opportunity_score') || err?.message?.includes('opportunity_category')) {
+        client = await this.prisma.client.findFirst({
+          where: { id, ...this.visibilityFilter(user) },
+          include: {
+            agent:    { select: { id: true, name: true } },
+            supplies: {
+              select: {
+                id: true, cups: true, type: true, currentSupplier: true,
+                tariff: true, contractEndDate: true,
+              },
+            },
+            opportunities: {
+              where:   { stage: { notIn: ['won', 'lost'] } },
+              select:  { id: true, title: true, stage: true, estimatedValue: true },
+              orderBy: { createdAt: 'desc' },
+              take:    5,
+            },
+          },
+        })
+      } else {
+        throw err
+      }
+    }
     if (!client) throw new NotFoundException('Client no trobat')
     return client
   }
 
-  /** Convert empty strings to undefined so Prisma stores NULL (avoids unique constraint issues on taxId/email) */
+  /**
+   * Remove keys with empty-string or null values so Prisma stores NULL.
+   * Avoids unique-constraint violations on taxId when left blank.
+   * Uses delete (not undefined) so the key is absent from the spread.
+   */
   private sanitize(dto: any) {
     const optional = ['taxId', 'email', 'phone', 'source', 'notes',
                       'addressStreet', 'addressCity', 'addressProvince', 'addressZip',
                       'dataRenovacio', 'assignedTo']
     const out: any = { ...dto }
     for (const key of optional) {
-      if (out[key] === '' || out[key] === null) out[key] = undefined
+      if (out[key] === '' || out[key] === null || out[key] === undefined) {
+        delete out[key]
+      }
     }
     return out
   }
 
   async create(user: any, dto: any) {
     const clean = this.sanitize(dto)
-    return this.prisma.client.create({
-      data: {
-        ...clean,
-        assignedTo: clean.assignedTo ?? user.id,
-        createdBy:  user.id,
-      },
-    })
+    try {
+      return await this.prisma.client.create({
+        data: {
+          ...clean,
+          assignedTo: clean.assignedTo ?? user.id,
+          createdBy:  user.id,
+        },
+      })
+    } catch (err: any) {
+      this.logger.error('client.create failed', err?.message, err?.code, JSON.stringify(clean))
+      if (err?.code === 'P2002') {
+        const field = err?.meta?.target?.[0] ?? 'camp'
+        throw new BadRequestException(`Ja existeix un client amb el mateix ${field === 'tax_id' ? 'NIF/CIF' : field}`)
+      }
+      throw err
+    }
   }
 
   async update(user: any, id: string, dto: any) {
