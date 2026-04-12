@@ -18,6 +18,7 @@ enum UserRole {
 enum ClientType {
   individual
   company
+  autonom
 }
 
 enum ClientStatus {
@@ -130,6 +131,9 @@ model Client {
   addressCity     String? @map("address_city")
   addressProvince String? @map("address_province")
   addressZip      String? @map("address_zip")
+  fixedPhone      String? @map("fixed_phone")
+  representantName String? @map("representant_name")
+  representantDni  String? @map("representant_dni")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   createdBy String?  @map("created_by")

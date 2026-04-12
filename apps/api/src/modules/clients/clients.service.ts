@@ -106,9 +106,9 @@ export class ClientsService {
    * Uses delete (not undefined) so the key is absent from the spread.
    */
   private sanitize(dto: any) {
-    const optional = ['taxId', 'email', 'phone', 'source', 'notes',
+    const optional = ['taxId', 'email', 'phone', 'fixedPhone', 'source', 'notes',
                       'addressStreet', 'addressCity', 'addressProvince', 'addressZip',
-                      'dataRenovacio', 'assignedTo']
+                      'dataRenovacio', 'assignedTo', 'representantName', 'representantDni']
     const out: any = { ...dto }
     for (const key of optional) {
       if (out[key] === '' || out[key] === null || out[key] === undefined) {
