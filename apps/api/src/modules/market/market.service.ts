@@ -46,66 +46,112 @@ export class MarketService {
 
     if (!response.ok) throw new Error(`OMIP returned ${response.status}`)
 
-    const html  = await response.text()
+    const html = await response.text()
     this.logger.log(`OMIP HTML length: ${html.length}`)
-    const $ = cheerio.load(html)
 
+    // ── Diagnostics: detect what keywords appear in the raw HTML ──────────
+    const hasFTB    = /FTB/i.test(html)
+    const hasCal    = /\bCal[-\s]\d{2}/i.test(html)
+    const hasYR     = /\bYR[-\s]?\d{2}/i.test(html)
+    const hasMIBGAS = /MIBGAS/i.test(html)
+    const numTables = (html.match(/<table/gi) ?? []).length
+    this.logger.log(`Keywords — FTB:${hasFTB} Cal:${hasCal} YR:${hasYR} MIBGAS:${hasMIBGAS} tables:${numTables}`)
+
+    const $ = cheerio.load(html)
     const contracts: OmipContract[] = []
 
-    // ─── Strategy 1: tables whose rows contain "FTB" (Spain electricity) ───
+    // Log first 3 rows of the first table for structure debugging
+    $('table').first().find('tr').slice(0, 3).each((i, row) => {
+      const text = $(row).text().replace(/\s+/g, ' ').trim().slice(0, 160)
+      this.logger.log(`T0-row${i}: ${text}`)
+    })
+
+    // ─── Strategy 1: section-aware table parsing ─────────────────────────
+    // OMIP page has zone-section headers ("FTB Spain Baseload") as captions
+    // or preceding header rows; data rows only contain contract names.
     $('table').each((_, table) => {
-      $(table).find('tr').each((_, row) => {
+      const $t      = $(table)
+      const capText = $t.find('caption, th').text()
+      const prevText = $t.prev('h2, h3, h4, p, div').text()
+      const sectionHint = (capText + ' ' + prevText).slice(0, 400)
+      const tableText   = $t.text().slice(0, 600)
+
+      const isSpainElec = /FTB|Spain.*[Ee]lec|Baseload|Electricid/i.test(sectionHint + tableText)
+      const isGas       = /PVB|MIBGAS|FGF|Gas\b/i.test(sectionHint + tableText)
+      if (!isSpainElec && !isGas) return
+
+      const commodity: 'electricity' | 'gas' = isGas && !isSpainElec ? 'gas' : 'electricity'
+
+      $t.find('tr').each((_, row) => {
         const cells = $(row).find('td')
         if (cells.length < 2) return
 
-        const texts = cells.toArray().map(c => $(c).text().trim().replace(/\u00a0/g, ' '))
-        const allText = texts.join(' ')
-
-        // Accept only FTB-Spain electricity or MIBGAS/PVB gas rows
-        const isElec = /FTB/i.test(allText) || /YR-\d{2}/i.test(allText) || /CAL-?\d{2}/i.test(allText)
-        const isGas  = /PVB|MIBGAS|FGF/i.test(allText)
-        if (!isElec && !isGas) return
-
-        // Skip header-like rows
+        const texts = cells.toArray().map(c =>
+          $(c).text().trim().replace(/\u00a0/g, ' ').replace(/\s+/g, ' '),
+        )
         const nameRaw = texts[0]
-        if (!nameRaw || nameRaw.toLowerCase().includes('contrat') || nameRaw.toLowerCase().includes('produc')) return
+        if (!nameRaw) return
 
-        // Find price: first cell that looks like a decimal number
+        // Broad contract-name patterns: handle both space and dash separators,
+        // 2- and 4-digit years, English + Spanish month abbreviations
+        const isContract =
+          /FTB|PVB|MIBGAS|FGF/i.test(nameRaw) ||
+          /\b(Cal|CAL|YR|Yr)[-\s]?\d{2,4}\b/i.test(nameRaw) ||
+          /\bQ[1-4][-\s]\d{2,4}\b/i.test(nameRaw) ||
+          /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[-\s]\d{2,4}\b/i.test(nameRaw) ||
+          /\b(Ene|Feb|Mar|Abr|May|Jun|Jul|Ago|Sep|Oct|Nov|Dic)[-\s]\d{2,4}\b/i.test(nameRaw) ||
+          /\b(WK|W|Semana)[-\s]?\d{1,2}/i.test(nameRaw) ||
+          /SPEL|Spot|Diario/i.test(nameRaw)
+
+        if (!isContract) return
+        if (/produc|contrat|zona|zone|type|tipo/i.test(nameRaw)) return
+
         const priceStr  = texts.find(t => /^\d{1,5}[.,]\d{1,4}$/.test(t.replace(/\s/g, '')))
-        const changeStr = texts.find((t, i) => i > 0 && /^[+-]?\d{1,4}[.,]\d{1,4}$/.test(t.replace(/\s/g, '')) && t !== priceStr)
+        const changeStr = texts.find((t, i) => i > 0 && t !== priceStr &&
+          /^[+-]?\d{1,4}[.,]\d{1,4}$/.test(t.replace(/\s/g, '')))
 
         const price  = priceStr  ? this.parseNum(priceStr)  : null
         const change = changeStr ? this.parseNum(changeStr) : null
         if (price === null) return
 
-        const commodity = isGas ? 'gas' : 'electricity'
         contracts.push(this.buildContract(nameRaw, price, change, commodity))
       })
     })
 
-    // ─── Strategy 2: look for structured data in any <tr> across the page ──
+    // ─── Strategy 2: scan ALL <tr> for rows whose first cell looks like a
+    //     contract name and whose subsequent cells contain prices ──────────
     if (contracts.length === 0) {
       $('tr').each((_, row) => {
         const cells = $(row).find('td')
         if (cells.length < 3) return
-        const texts = cells.toArray().map(c => $(c).text().trim())
-        const name  = texts[0]
-        if (!name) return
+        const texts = cells.toArray().map(c =>
+          $(c).text().trim().replace(/\u00a0/g, ' ').replace(/\s+/g, ' '),
+        )
+        const nameRaw = texts[0]
+        if (!nameRaw) return
 
-        const isElec = /FTB|YR-\d{2}|CAL/i.test(name)
-        const isGas  = /PVB|MIBGAS|FGF/i.test(name)
+        const isElec =
+          /FTB|SPEL/i.test(nameRaw) ||
+          /\b(Cal|YR)[-\s]?\d{2,4}/i.test(nameRaw) ||
+          /\bQ[1-4][-\s]\d{2,4}/i.test(nameRaw) ||
+          /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[-\s]\d{2}/i.test(nameRaw)
+        const isGas = /PVB|MIBGAS|FGF/i.test(nameRaw)
         if (!isElec && !isGas) return
 
         const price  = this.parseNum(texts[1])
         const change = this.parseNum(texts[2])
         if (price === null) return
 
-        contracts.push(this.buildContract(name, price, change, isGas ? 'gas' : 'electricity'))
+        contracts.push(this.buildContract(nameRaw, price, change, isGas ? 'gas' : 'electricity'))
       })
     }
 
     if (contracts.length === 0) {
       this.logger.warn('OMIP scrape returned no Spain FTB contracts — using fallback')
+      // Log HTML snippet so we can see actual page structure
+      const snippet = html.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ')
+      this.logger.log(`HTML[0-400]: ${snippet.slice(0, 400)}`)
+      this.logger.log(`HTML[2000-2400]: ${snippet.slice(2000, 2400)}`)
       return this.getFallbackData()
     }
 
@@ -135,35 +181,50 @@ export class MarketService {
   }
 
   private extractCode(name: string): string {
-    // Year contract: YR-28, CAL28, CAL-28, Cal 28
-    const yr = name.match(/(?:YR|CAL)[- ]?(\d{2})/i)
-    if (yr) return `YR-${yr[1]}`
+    // Year contract: YR-28, CAL28, CAL-28, Cal 28, Cal-28, Cal2028
+    const yr = name.match(/\b(?:YR|CAL|Cal)[-\s]?(\d{2,4})\b/i)
+    if (yr) {
+      const yy = yr[1].length === 4 ? yr[1].slice(-2) : yr[1]
+      return `YR-${yy}`
+    }
 
-    // Quarter: Q1-26, Q2 26
-    const q = name.match(/Q([1-4])[- ](\d{2})/i)
-    if (q) return `Q${q[1]}-${q[2]}`
+    // Quarter: Q1-26, Q2 26, Q2-2026
+    const q = name.match(/\bQ([1-4])[-\s](\d{2,4})\b/i)
+    if (q) {
+      const yy = q[2].length === 4 ? q[2].slice(-2) : q[2]
+      return `Q${q[1]}-${yy}`
+    }
 
-    // Month: M-MAY-26, MAY-26, MAY 26
-    const m = name.match(/([A-Z]{3})[- ](\d{2})/i)
-    if (m) return `${m[1].toUpperCase()}-${m[2]}`
+    // Month (English or Spanish 3-letter): MAY-26, MAY 26, May 2026
+    const m = name.match(/\b([A-Z]{3})[-\s](\d{2,4})\b/i)
+    if (m) {
+      const yy = m[2].length === 4 ? m[2].slice(-2) : m[2]
+      return `${m[1].toUpperCase()}-${yy}`
+    }
 
     // Week: WK-15-26, W15-26
-    const w = name.match(/(?:WK|W)[- ]?(\d{1,2})[- ](\d{2})/i)
-    if (w) return `WK-${w[1]}-${w[2]}`
+    const w = name.match(/\b(?:WK|W|Semana)[-\s]?(\d{1,2})[-\s](\d{2,4})\b/i)
+    if (w) {
+      const yy = w[2].length === 4 ? w[2].slice(-2) : w[2]
+      return `WK-${w[1]}-${yy}`
+    }
 
     // Spot/SPEL
-    if (/SPEL|SPOT/i.test(name)) return 'SPOT'
+    if (/SPEL|SPOT|Spot|Diario/i.test(name)) return 'SPOT'
+
+    // PVB gas spot
+    if (/PVB.*[Ss]pot/i.test(name)) return 'PVB-SPOT'
 
     return name.replace(/\s+/g, '-').toUpperCase().slice(0, 12)
   }
 
   private inferType(name: string): OmipContract['type'] {
     const u = name.toUpperCase()
-    if (/SPEL|SPOT/.test(u))               return 'spot'
-    if (/YR|CAL/.test(u))                   return 'year'
-    if (/Q[1-4]/.test(u))                   return 'quarter'
-    if (/[A-Z]{3}-\d{2}/.test(u) && !/Q/.test(u)) return 'month'
-    if (/WK|WEEK/.test(u))                  return 'week'
+    if (/SPEL|SPOT|DIARIO/.test(u))                      return 'spot'
+    if (/\b(YR|CAL|CAL)[-\s]?\d{2,4}/.test(u))          return 'year'
+    if (/\bQ[1-4][-\s]\d{2,4}/.test(u))                  return 'quarter'
+    if (/\b(WK|W|SEMANA)[-\s]?\d{1,2}/.test(u))          return 'week'
+    if (/\b[A-Z]{3}[-\s]\d{2,4}/.test(u))                return 'month'
     return 'month'
   }
 
@@ -185,8 +246,8 @@ export class MarketService {
     const nqYr  = q < 4 ? yr : yr + 1
 
     // Year contracts: next 5 calendar years
-    const yearContracts: OmipContract[] = [1, 2, 3, 4, 5].map((offset, i) => {
-      const y = yr + offset
+    const yearContracts: OmipContract[] = [1, 2, 3, 4, 5].map((offset) => {
+      const y  = yr + offset
       const yy = String(y).slice(-2)
       const basePrice = 85 - offset * 3.5
       const change = (Math.random() - 0.5) * 2
