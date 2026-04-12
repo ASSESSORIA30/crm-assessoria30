@@ -11,7 +11,14 @@ export class ClientsService {
 
   private visibilityFilter(user: any): Prisma.ClientWhereInput {
     if (user.role === 'admin' || user.role === 'direction') return {}
-    return { agent: { treePath: { startsWith: user.treePath } } }
+    // If treePath is not set fall back to showing clients the agent owns directly
+    if (!user.treePath) return { assignedTo: user.id }
+    return {
+      OR: [
+        { assignedTo: user.id },
+        { agent: { treePath: { startsWith: user.treePath } } },
+      ],
+    }
   }
 
   async findAll(user: any, query: { search?: string; status?: string; page?: number; limit?: number }) {

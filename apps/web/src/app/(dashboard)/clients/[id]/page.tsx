@@ -2,10 +2,12 @@
 'use client'
 import { useState } from 'react'
 import Link         from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientsApi } from '@/lib/api'
-import { ArrowLeft, Phone, Mail, MapPin, Plus, Zap, Target, Edit } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Plus, Zap, Target, Pencil, Trash2 } from 'lucide-react'
 import { cn, fmt, initials, expiryLabel, expiryClass, STAGE_LABEL, SERVICE_ICON } from '@/lib/utils'
+import { toast } from 'sonner'
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   active:    { label: 'Actiu',     cls: 'badge-green' },
@@ -19,10 +21,28 @@ const TABS = [
 
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
   const [tab, setTab] = useState('supplies')
+  const router = useRouter()
+  const qc     = useQueryClient()
+
   const { data: client, isLoading } = useQuery({
     queryKey: ['client', params.id],
     queryFn:  () => clientsApi.get(params.id),
   })
+
+  const deleteMut = useMutation({
+    mutationFn: () => clientsApi.delete(params.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] })
+      toast.success('Client eliminat')
+      router.push('/clients')
+    },
+    onError: () => toast.error('Error eliminant el client'),
+  })
+
+  function handleDelete() {
+    if (!confirm(`Eliminar el client "${client?.name}"? Aquesta acció no es pot desfer.`)) return
+    deleteMut.mutate()
+  }
 
   if (isLoading) return (
     <div className="space-y-4 animate-pulse max-w-3xl">
@@ -77,6 +97,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <Link href={`/opportunities/new?clientId=${params.id}`} className="btn-primary text-xs px-3 py-1.5">
               <Plus className="w-3.5 h-3.5" /> Oportunitat
             </Link>
+            <Link href={`/clients/${params.id}/edit`} className="btn-secondary text-xs px-3 py-1.5">
+              <Pencil className="w-3.5 h-3.5" /> Editar
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleteMut.isPending}
+              className="btn-secondary text-xs px-3 py-1.5 text-red-600 hover:bg-red-50 border-red-200"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Eliminar
+            </button>
           </div>
         </div>
         {client.agent && (

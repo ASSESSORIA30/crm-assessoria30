@@ -2,14 +2,14 @@
 'use client'
 import { useState }  from 'react'
 import Link          from 'next/link'
-import { useQuery }  from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient }  from '@tanstack/react-query'
 import { clientsApi }from '@/lib/api'
 import { useDebounce } from '@/hooks/use-debounce'
 import {
-  Search, Plus, Users, ChevronRight,
-  Zap, Flame,
+  Search, Plus, Users, Pencil, Trash2, Zap,
 } from 'lucide-react'
 import { cn, fmt, initials } from '@/lib/utils'
+import { toast } from 'sonner'
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   active:    { label: 'Actiu',     cls: 'badge-green'  },
@@ -21,12 +21,29 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [page,   setPage]   = useState(1)
-  const q = useDebounce(search, 300)
+  const q  = useDebounce(search, 300)
+  const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['clients', { q, status, page }],
     queryFn:  () => clientsApi.list({ search: q, status, page, limit: 25 }),
   })
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => clientsApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] })
+      toast.success('Client eliminat')
+    },
+    onError: () => toast.error('Error eliminant el client'),
+  })
+
+  function handleDelete(e: React.MouseEvent, id: string, name: string) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!confirm(`Eliminar el client "${name}"? Aquesta acció no es pot desfer.`)) return
+    deleteMut.mutate(id)
+  }
 
   const clients = data?.data ?? []
   const total   = data?.total ?? 0
@@ -89,8 +106,8 @@ export default function ClientsPage() {
         ) : (
           <>
             {/* Capçalera */}
-            <div className="grid grid-cols-[2fr_1fr_80px_80px_32px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
-              {['Client', 'Estat', 'Sumin.', 'Agent', ''].map((h, i) => (
+            <div className="grid grid-cols-[2fr_1fr_64px_80px_80px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+              {['Client', 'Estat', 'Sum.', 'Agent', ''].map((h, i) => (
                 <span key={i} className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{h}</span>
               ))}
             </div>
@@ -99,11 +116,11 @@ export default function ClientsPage() {
             {clients.map((c: any) => {
               const s = STATUS[c.status] ?? STATUS.potential
               return (
-                <Link key={c.id} href={`/clients/${c.id}`}
-                  className="grid grid-cols-[2fr_1fr_80px_80px_32px] gap-3 px-4 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors items-center group"
+                <div key={c.id}
+                  className="grid grid-cols-[2fr_1fr_64px_80px_80px] gap-3 px-4 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors items-center group"
                 >
                   {/* Nom */}
-                  <div className="flex items-center gap-3 min-w-0">
+                  <Link href={`/clients/${c.id}`} className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">
                       {initials(c.name)}
                     </div>
@@ -111,7 +128,7 @@ export default function ClientsPage() {
                       <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{c.name}</p>
                       {c.taxId && <p className="text-[10px] text-gray-400 font-mono">{c.taxId}</p>}
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Estat */}
                   <span className={cn('badge w-fit', s.cls)}>{s.label}</span>
@@ -133,8 +150,25 @@ export default function ClientsPage() {
                     </div>
                   ) : <span className="text-xs text-gray-300">—</span>}
 
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                </Link>
+                  {/* Accions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                    <Link
+                      href={`/clients/${c.id}/edit`}
+                      onClick={e => e.stopPropagation()}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={e => handleDelete(e, c.id, c.name)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               )
             })}
           </>
