@@ -159,6 +159,9 @@ model Supply {
   powerP1 Float? @map("power_p1")
   powerP2 Float? @map("power_p2")
   powerP3 Float? @map("power_p3")
+  powerP4 Float? @map("power_p4")
+  powerP5 Float? @map("power_p5")
+  powerP6 Float? @map("power_p6")
   annualConsumption Float? @map("annual_consumption")
   // Management type flags
   altaNova         Boolean @default(false) @map("alta_nova")

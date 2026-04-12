@@ -2,22 +2,36 @@
 'use client'
 import { useState }  from 'react'
 import Link          from 'next/link'
-import { useQuery }  from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient }  from '@tanstack/react-query'
 import { suppliesApi }from '@/lib/api'
 import { useDebounce } from '@/hooks/use-debounce'
-import { Search, Plus, Zap, ChevronRight } from 'lucide-react'
+import { Search, Plus, Zap, Pencil, Trash2 } from 'lucide-react'
 import { cn, fmt, expiryLabel, expiryClass } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export default function SuppliesPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [page, setPage] = useState(1)
-  const q = useDebounce(search, 300)
+  const q  = useDebounce(search, 300)
+  const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['supplies', { q, category, page }],
     queryFn:  () => suppliesApi.list({ search: q, category, page, limit: 25 }),
   })
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => suppliesApi.delete(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['supplies'] }); toast.success('Subministrament eliminat') },
+    onError: () => toast.error('Error eliminant el subministrament'),
+  })
+
+  function handleDelete(e: React.MouseEvent, id: string, cups: string) {
+    e.preventDefault(); e.stopPropagation()
+    if (!confirm(`Eliminar el subministrament ${cups || id}?`)) return
+    deleteMut.mutate(id)
+  }
 
   const supplies = data?.data ?? []
   const total    = data?.total ?? 0
@@ -63,7 +77,7 @@ export default function SuppliesPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-[2fr_1.5fr_120px_90px_32px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+            <div className="grid grid-cols-[2fr_1.5fr_120px_90px_80px] gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
               {['CUPS · Client', 'Comercialitzadora', 'Venciment', 'Prioritat', ''].map((h, i) => (
                 <span key={i} className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{h}</span>
               ))}
@@ -72,18 +86,18 @@ export default function SuppliesPage() {
               const score = s.opportunityScore ?? 0
               const scoreColor = score >= 80 ? 'bg-red-50 text-red-700' : score >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'
               return (
-                <Link key={s.id} href={`/supplies/${s.id}`}
-                  className="grid grid-cols-[2fr_1.5fr_120px_90px_32px] gap-3 px-4 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors items-center group">
-                  <div className="min-w-0">
+                <div key={s.id}
+                  className="grid grid-cols-[2fr_1.5fr_120px_90px_80px] gap-3 px-4 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors items-center group">
+                  <Link href={`/supplies/${s.id}`} className="min-w-0">
                     <p className="text-sm font-mono text-gray-700 truncate group-hover:text-blue-600 transition-colors">
                       {s.type === 'electric' ? '⚡' : '🔥'} {s.cups}
                     </p>
                     <p className="text-xs text-gray-400 truncate">{s.client?.name}</p>
-                  </div>
-                  <div>
+                  </Link>
+                  <Link href={`/supplies/${s.id}`} className="min-w-0">
                     <p className="text-sm text-gray-700">{s.currentSupplier ?? '—'}</p>
                     <p className="text-xs text-gray-400">{s.tariff}</p>
-                  </div>
+                  </Link>
                   <div>
                     {s.contractEndDate ? (
                       <span className={cn('text-sm font-medium', expiryClass(s.contractEndDate))}>{expiryLabel(s.contractEndDate)}</span>
@@ -94,8 +108,25 @@ export default function SuppliesPage() {
                       ? <span className={cn('text-xs px-2 py-1 rounded-full font-semibold', scoreColor)}>{score}</span>
                       : <span className="text-gray-300 text-xs">—</span>}
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                </Link>
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                    <Link
+                      href={`/supplies/${s.id}`}
+                      onClick={e => e.stopPropagation()}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Veure / Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={e => handleDelete(e, s.id, s.cups)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               )
             })}
           </>

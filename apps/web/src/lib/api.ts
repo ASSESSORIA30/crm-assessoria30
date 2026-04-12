@@ -67,6 +67,7 @@ export const suppliesApi = {
   get:     (id: string) => api.get(`/supplies/${id}`).then(r => r.data),
   create:  (d: any)    => api.post('/supplies',     d).then(r => r.data),
   update:  (id: string, d: any) => api.patch(`/supplies/${id}`, d).then(r => r.data),
+  delete:  (id: string) => api.delete(`/supplies/${id}`).then(r => r.data),
   preview: (id: string) => api.get(`/supplies/${id}/comparison-preview`).then(r => r.data),
 }
 
