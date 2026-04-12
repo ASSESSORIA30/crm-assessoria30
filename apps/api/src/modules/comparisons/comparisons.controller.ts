@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Body, Query, Res, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Param, Body, Res, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
@@ -12,6 +13,13 @@ export class ComparisonsController {
     private prisma: PrismaService,
     private service: ComparisonsService,
   ) {}
+
+  @Post('extract-invoice')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
+  async extractInvoice(@UploadedFile() file: any) {
+    if (!file) throw new Error('No file received')
+    return this.service.extractInvoice(file.buffer, file.mimetype, file.originalname)
+  }
 
   @Get('lookup/:cups')
   async lookupCups(@Param('cups') cups: string) {

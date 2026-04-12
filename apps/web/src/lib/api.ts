@@ -106,6 +106,17 @@ export const productsApi = {
   },
 }
 
+export const comparisonsApi = {
+  extractInvoice: (file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post('/comparisons/extract-invoice', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60_000,
+    }).then(r => r.data)
+  },
+}
+
 export const oppApi = {
   dashboard: ()          => api.get('/opportunities/dashboard').then(r => r.data),
   list:      (p?: any)   => api.get('/opportunities', { params: p }).then(r => r.data),

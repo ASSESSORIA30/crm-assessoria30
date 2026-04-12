@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import * as PDFDocument from 'pdfkit'
+import Anthropic from '@anthropic-ai/sdk'
 
 interface ConsumptionData {
   cups?: string
@@ -205,5 +206,88 @@ export class ComparisonsService {
 
       doc.end()
     })
+  }
+
+  async extractInvoice(buffer: Buffer, mimetype: string, originalname: string): Promise<any> {
+    const apiKey = process.env.ANTHROPIC_API_KEY
+    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured')
+
+    const client = new Anthropic({ apiKey })
+
+    const base64 = buffer.toString('base64')
+    const isPdf = mimetype === 'application/pdf' || (originalname ?? '').toLowerCase().endsWith('.pdf')
+
+    const isImage = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(mimetype)
+    if (!isPdf && !isImage) throw new Error(`Tipus de fitxer no suportat: ${mimetype}`)
+
+    const PROMPT = `Ets un expert en factures d'energia espanyoles. Analitza aquesta factura i extreu les dades en format JSON estrictament vàlid.
+
+Extreu aquests camps (usa null si no trobes el valor):
+{
+  "cups": "codi CUPS (16-22 caràcters, comença per ES)",
+  "clientName": "nom complet del client",
+  "clientNif": "NIF/CIF del client",
+  "clientAddress": "adreça completa del client",
+  "currentSupplier": "nom de la comercialitzadora",
+  "tariff": "tipus de tarifa (p.ex. 2.0TD, 3.0TD, 6.1TD)",
+  "billingPeriodStart": "data inici facturació (YYYY-MM-DD)",
+  "billingPeriodEnd": "data fi facturació (YYYY-MM-DD)",
+  "totalAmount": número total factura en euros,
+  "powerP1": número potència contractada P1 en kW,
+  "powerP2": número potència contractada P2 en kW,
+  "powerP3": número potència contractada P3 en kW,
+  "powerP4": número potència contractada P4 en kW (null si no aplica),
+  "powerP5": número potència contractada P5 en kW (null si no aplica),
+  "powerP6": número potència contractada P6 en kW (null si no aplica),
+  "energyP1": número energia consumida P1 en kWh,
+  "energyP2": número energia consumida P2 en kWh,
+  "energyP3": número energia consumida P3 en kWh,
+  "energyP4": número energia consumida P4 en kWh (null si no aplica),
+  "energyP5": número energia consumida P5 en kWh (null si no aplica),
+  "energyP6": número energia consumida P6 en kWh (null si no aplica),
+  "currentPowerPriceP1": número preu potència P1 en €/kW·any,
+  "currentPowerPriceP2": número preu potència P2 en €/kW·any,
+  "currentPowerPriceP3": número preu potència P3 en €/kW·any,
+  "currentPowerPriceP4": número preu potència P4 (null si no aplica),
+  "currentPowerPriceP5": número preu potència P5 (null si no aplica),
+  "currentPowerPriceP6": número preu potència P6 (null si no aplica),
+  "currentEnergyPriceP1": número preu energia P1 en €/kWh,
+  "currentEnergyPriceP2": número preu energia P2 en €/kWh,
+  "currentEnergyPriceP3": número preu energia P3 en €/kWh,
+  "currentEnergyPriceP4": número preu energia P4 (null si no aplica),
+  "currentEnergyPriceP5": número preu energia P5 (null si no aplica),
+  "currentEnergyPriceP6": número preu energia P6 (null si no aplica)
+}
+
+IMPORTANT: Respon ÚNICAMENT amb el JSON vàlid, sense text addicional, sense markdown, sense \`\`\`.`
+
+    const contentBlock: any = isPdf
+      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
+      : { type: 'image', source: { type: 'base64', media_type: mimetype as any, data: base64 } }
+
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2048,
+      messages: [
+        {
+          role: 'user',
+          content: [contentBlock, { type: 'text', text: PROMPT }],
+        },
+      ],
+    })
+
+    const text = (response.content[0] as any).text?.trim() ?? ''
+
+    // Strip possible markdown fences
+    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '')
+
+    try {
+      return JSON.parse(cleaned)
+    } catch {
+      // Try to extract JSON from text
+      const match = cleaned.match(/\{[\s\S]*\}/)
+      if (match) return JSON.parse(match[0])
+      throw new Error('No s\'ha pogut parsejar la resposta de la IA')
+    }
   }
 }

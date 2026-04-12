@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, comparisonsApi } from '@/lib/api'
 import { toast } from 'sonner'
 import {
   Search, Loader2, ArrowRight, Download, Mail, MessageCircle,
-  CheckCircle, ChevronRight, BarChart2, Trophy,
+  CheckCircle, ChevronRight, BarChart2, Trophy, FileUp, Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -42,9 +42,59 @@ export default function ComparisonsPage() {
   const [results, setResults] = useState<any>(null)
   const [compId, setCompId] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'savingsEur' | 'estimatedCommission' | 'newCostTotal'>('savingsEur')
+  const [extracting, setExtracting] = useState(false)
+  const [extracted, setExtracted] = useState(false)
+  const invoiceRef = useRef<HTMLInputElement>(null)
 
   const f = (k: keyof FormData, v: string) => setForm({ ...form, [k]: v })
   const n = (v: string) => v ? Number(v) : undefined
+
+  async function handleInvoiceUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setExtracting(true)
+    try {
+      const data = await comparisonsApi.extractInvoice(file)
+      const toStr = (v: any) => v != null ? String(v) : ''
+      setForm(prev => ({
+        ...prev,
+        cups:              data.cups              ?? prev.cups,
+        clientName:        data.clientName        ?? prev.clientName,
+        clientNif:         data.clientNif         ?? prev.clientNif,
+        clientAddress:     data.clientAddress     ?? prev.clientAddress,
+        powerP1:           toStr(data.powerP1)    || prev.powerP1,
+        powerP2:           toStr(data.powerP2)    || prev.powerP2,
+        powerP3:           toStr(data.powerP3)    || prev.powerP3,
+        energyP1:          toStr(data.energyP1)   || prev.energyP1,
+        energyP2:          toStr(data.energyP2)   || prev.energyP2,
+        energyP3:          toStr(data.energyP3)   || prev.energyP3,
+        energyP4:          toStr(data.energyP4)   || prev.energyP4,
+        energyP5:          toStr(data.energyP5)   || prev.energyP5,
+        energyP6:          toStr(data.energyP6)   || prev.energyP6,
+        currentPowerPriceP1:  toStr(data.currentPowerPriceP1)  || prev.currentPowerPriceP1,
+        currentPowerPriceP2:  toStr(data.currentPowerPriceP2)  || prev.currentPowerPriceP2,
+        currentPowerPriceP3:  toStr(data.currentPowerPriceP3)  || prev.currentPowerPriceP3,
+        currentEnergyPriceP1: toStr(data.currentEnergyPriceP1) || prev.currentEnergyPriceP1,
+        currentEnergyPriceP2: toStr(data.currentEnergyPriceP2) || prev.currentEnergyPriceP2,
+        currentEnergyPriceP3: toStr(data.currentEnergyPriceP3) || prev.currentEnergyPriceP3,
+        currentEnergyPriceP4: toStr(data.currentEnergyPriceP4) || prev.currentEnergyPriceP4,
+        currentEnergyPriceP5: toStr(data.currentEnergyPriceP5) || prev.currentEnergyPriceP5,
+        currentEnergyPriceP6: toStr(data.currentEnergyPriceP6) || prev.currentEnergyPriceP6,
+      }))
+      setExtracted(true)
+      setFound(true)
+      toast.success('Factura llegida correctament. Revisa les dades i continua.')
+      // Auto-advance to step 1 if basic data was found
+      if (data.energyP1 || data.powerP1) {
+        setTimeout(() => setStep(1), 800)
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? err.message ?? 'Error llegint la factura')
+    } finally {
+      setExtracting(false)
+      if (invoiceRef.current) invoiceRef.current.value = ''
+    }
+  }
 
   async function lookupCups() {
     if (!form.cups) return
@@ -168,6 +218,54 @@ export default function ComparisonsPage() {
       {/* Step 0: CUPS + Client */}
       {step === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+
+          {/* AI Invoice Reader */}
+          <div className={cn(
+            'rounded-xl border-2 border-dashed p-5 text-center transition-all',
+            extracted ? 'border-green-300 bg-green-50' : 'border-blue-200 bg-blue-50/50 hover:bg-blue-50',
+          )}>
+            <input ref={invoiceRef} type="file" accept=".pdf,image/*" className="hidden" onChange={handleInvoiceUpload} />
+            {extracting ? (
+              <div className="flex flex-col items-center gap-2 py-2">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+                <p className="text-sm font-medium text-blue-700">Llegint factura amb IA...</p>
+                <p className="text-xs text-blue-500">Analitzant document i extraient dades</p>
+              </div>
+            ) : extracted ? (
+              <div className="flex flex-col items-center gap-2 py-1">
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-6 h-6" />
+                  <p className="text-sm font-semibold">Factura llegida correctament</p>
+                </div>
+                <p className="text-xs text-green-600">Les dades s'han omplert automàticament. Revisa i continua.</p>
+                <button
+                  onClick={() => { setExtracted(false); invoiceRef.current?.click() }}
+                  className="text-xs text-green-600 underline mt-1 hover:text-green-700"
+                >
+                  Pujar una altra factura
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => invoiceRef.current?.click()}
+                className="flex flex-col items-center gap-2 w-full py-2 cursor-pointer"
+              >
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Sparkles className="w-5 h-5" />
+                  <FileUp className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-semibold text-blue-700">Pujar factura (PDF o imatge)</p>
+                <p className="text-xs text-blue-500">La IA llegirà la factura i omplirà les dades automàticament</p>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span>o introdueix les dades manualment</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
           <div>
             <label className="text-xs font-medium text-gray-500 mb-2 block">Cerca per CUPS</label>
             <div className="flex gap-2">
@@ -179,7 +277,7 @@ export default function ComparisonsPage() {
                 Buscar
               </button>
             </div>
-            {found && <p className="text-xs text-green-600 mt-1">Dades del client carregades automàticament</p>}
+            {found && !extracted && <p className="text-xs text-green-600 mt-1">Dades del client carregades automàticament</p>}
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -348,7 +446,7 @@ export default function ComparisonsPage() {
             </div>
           </div>
 
-          <button onClick={() => { setStep(0); setResults(null); setCompId(null); setForm(empty); setFound(false) }}
+          <button onClick={() => { setStep(0); setResults(null); setCompId(null); setForm(empty); setFound(false); setExtracted(false) }}
             className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
             Nova comparativa
           </button>
