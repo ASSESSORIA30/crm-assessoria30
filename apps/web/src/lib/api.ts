@@ -84,9 +84,18 @@ export const protocolsApi = {
 }
 
 export const productsApi = {
-  companies: ()              => api.get('/products/companies').then(r => r.data),
-  list:      (p?: any)       => api.get('/products', { params: p }).then(r => r.data),
-  update:    (id: string, d: any) => api.patch(`/products/${id}`, d).then(r => r.data),
+  companies:    ()              => api.get('/products/companies').then(r => r.data),
+  companyLogos: ()              => api.get('/products/company-logos').then(r => r.data),
+  list:         (p?: any)       => api.get('/products', { params: p }).then(r => r.data),
+  update:       (id: string, d: any) => api.patch(`/products/${id}`, d).then(r => r.data),
+  delete:       (id: string)    => api.delete(`/products/${id}`).then(r => r.data),
+  uploadLogo: (company: string, file: File) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post(`/products/companies/${encodeURIComponent(company)}/logo`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data)
+  },
   upload:    (file: File)    => {
     const fd = new FormData()
     fd.append('file', file)

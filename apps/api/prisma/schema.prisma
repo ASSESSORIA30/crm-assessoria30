@@ -439,6 +439,15 @@ model Comparison {
   @@map("comparisons")
 }
 
+model CompanyLogo {
+  id        String   @id @default(cuid())
+  company   String   @unique
+  logoData  String?  @map("logo_data") @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("company_logos")
+}
+
 model CommissionRule {
   id          String   @id @default(uuid())
   type        String   // Fijo | Consumo | Potencia | Consumo y potencia
