@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Param, Body, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common'
+import { Controller, Post, Get, Param, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
@@ -14,12 +14,16 @@ export class ProductsController {
   ) {}
 
   // Static routes first
+
+  /** Returns distinct company names from the tariffs table */
   @Get('companies')
   async companies() {
-    return this.prisma.company.findMany({
-      orderBy: { nombre: 'asc' },
-      include: { _count: { select: { tarifes: true } } },
+    const grouped = await this.prisma.tariff.groupBy({
+      by: ['company'],
+      _count: { company: true },
+      orderBy: { company: 'asc' },
     })
+    return grouped.map(g => ({ company: g.company, count: g._count.company }))
   }
 
   @Post('upload')
@@ -44,26 +48,16 @@ export class ProductsController {
   }
 
   @Get()
-  async list(@Query('companyId') companyId?: string, @Query('tipus') tipus?: string) {
+  async list(
+    @Query('company') company?: string,
+    @Query('serviceType') serviceType?: string,
+  ) {
     const where: any = {}
-    if (companyId) where.companyId = companyId
-    if (tipus) where.tipus = tipus
-    return this.prisma.tarifa.findMany({
+    if (company) where.company = company
+    if (serviceType) where.serviceType = serviceType
+    return this.prisma.tariff.findMany({
       where,
-      include: { company: { select: { nombre: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ company: 'asc' }, { productName: 'asc' }],
     })
-  }
-
-  // Dynamic routes last
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: any) {
-    const data: any = {}
-    if (body.preuKwh !== undefined) data.preuKwh = body.preuKwh
-    if (body.preuKw !== undefined) data.preuKw = body.preuKw
-    if (body.peatge !== undefined) data.peatge = body.peatge
-    if (body.condicions !== undefined) data.condicions = body.condicions
-    if (body.activa !== undefined) data.activa = body.activa
-    return this.prisma.tarifa.update({ where: { id }, data })
   }
 }

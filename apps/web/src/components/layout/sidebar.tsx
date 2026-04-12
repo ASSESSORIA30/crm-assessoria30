@@ -18,7 +18,6 @@ const NAV = [
   { href: '/opportunities',    label: 'Oportunitats',     icon: Target           },
   { href: '/market',            label: 'Mercat Diari',     icon: TrendingUp,      section: 'COMERCIAL' },
   { href: '/products',         label: 'Productes',        icon: Package         },
-  { href: '/protocols/upload', label: 'Protocols',         icon: FileText         },
   { href: '/oportunitats',     label: 'Detector',         icon: BarChart2        },
   { href: '/comparisons',      label: 'Comparatives',     icon: BarChart2        },
   { href: '/contracts',        label: 'Contractes',       icon: FileText         },
