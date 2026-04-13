@@ -146,11 +146,11 @@ function OmiePanel() {
             />
             <Tooltip
               contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }}
-              formatter={(v: any, name: string) => [
+              formatter={(v: any, name: any) => [
                 `${Number(v).toFixed(2)} €/MWh`,
                 name === 'avgPrice' ? 'Mitjana' : name === 'maxPrice' ? 'Màxim' : 'Mínim',
               ]}
-              labelFormatter={(d: number) => `Dia ${d}`}
+              labelFormatter={(d: any) => `Dia ${d}`}
             />
             <Area
               type="monotone" dataKey="avgPrice"
