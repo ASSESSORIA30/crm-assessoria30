@@ -17,7 +17,7 @@ import { LiquidationsModule } from './modules/liquidations/liquidations.module'
 // import { RenewalsModule } from './modules/renewals/renewals.module'
 // import { FacturasModule } from './modules/facturas/facturas.module'
 // import { DashboardModule } from './modules/dashboard/dashboard.module'
-// import { ComparisonsModule } from './modules/comparisons/comparisons.module'
+import { ComparisonsModule } from './modules/comparisons/comparisons.module'
 // import { StatsModule } from './modules/stats/stats.module'
 // import { ProtocolsModule } from './modules/protocols/protocols.module'
 // import { TariffSyncModule } from './modules/tariff-sync/tariff-sync.module'
@@ -41,7 +41,7 @@ import { LiquidationsModule } from './modules/liquidations/liquidations.module'
     // RenewalsModule,
     // FacturasModule,
     // DashboardModule,
-    // ComparisonsModule,
+    ComparisonsModule,
     // StatsModule,
     // ProtocolsModule,
     // TariffSyncModule,
