@@ -15,8 +15,8 @@ export class ClientsService {
   }
 
   async findAll(user: any, query: { search?: string; status?: string; page?: number; limit?: number }) {
-    const page  = query.page  ?? 1
-    const limit = query.limit ?? 25
+    const page  = Math.max(1, Number(query.page  ?? 1) || 1)
+    const limit = Math.min(500, Math.max(1, Number(query.limit ?? 25) || 25))
     const where: Prisma.ClientWhereInput = {
       ...this.visibilityFilter(user),
       ...(query.status && { status: query.status as any }),
