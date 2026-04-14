@@ -7,6 +7,7 @@ import { UsersModule }   from './modules/users/users.module'
 import { ClientsModule } from './modules/clients/clients.module'
 import { SuppliesModule }from './modules/supplies/supplies.module'
 import { OpportunitiesModule } from './modules/opportunities/opportunities.module'
+import { RgpdModule }         from './modules/rgpd/rgpd.module'
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { OpportunitiesModule } from './modules/opportunities/opportunities.modul
     ClientsModule,
     SuppliesModule,
     OpportunitiesModule,
+    RgpdModule,
   ],
 })
 export class AppModule {}
